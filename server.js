@@ -273,9 +273,9 @@ function serveStatic(reqId, reqPath, res) {
   });
 }
 
-// ---- HTTP SERVER ----
+// ---- HTTP HANDLER ----
 
-const server = http.createServer((req, res) => {
+function requestHandler(req, res) {
   const reqId = ++requestCounter;
   const startedAt = Date.now();
   const pathname = new URL(req.url, `http://${req.headers.host || 'localhost'}`).pathname;
@@ -326,34 +326,42 @@ const server = http.createServer((req, res) => {
   }
 
   serveStatic(reqId, pathname, res);
-});
+}
 
-server.listen(PORT, () => {
-  log('INFO', 'Math Solver AI server is running (Groq backend)');
-  log('INFO', `URL: http://localhost:${PORT}`);
-  if (!GROQ_API_KEY) {
-    log('WARN', '*** GROQ_API_KEY is not set! Set it before starting: GROQ_API_KEY=your_key npm run dev ***');
-  } else {
-    log('INFO', 'Groq API key detected. Ready to handle requests.');
-  }
-});
+if (process.env.VERCEL) {
+  // Vercel serverless function entrypoint
+  module.exports = requestHandler;
+} else {
+  // Local Node server mode
+  const server = http.createServer(requestHandler);
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    log('ERROR', `Port ${PORT} is already in use.`);
-    log('ERROR', `Use: npx kill-port ${PORT} or set PORT to a different value.`);
-  } else {
-    log('ERROR', `Server failed to start: ${err.message}`, err);
-  }
-  process.exit(1);
-});
-
-process.on('uncaughtException', (err) => {
-  log('FATAL', `Uncaught exception: ${err.message}`, err);
-});
-
-process.on('unhandledRejection', (reason) => {
-  log('FATAL', 'Unhandled promise rejection', {
-    reason: reason instanceof Error ? reason.message : reason,
+  server.listen(PORT, () => {
+    log('INFO', 'Math Solver AI server is running (Groq backend)');
+    log('INFO', `URL: http://localhost:${PORT}`);
+    if (!GROQ_API_KEY) {
+      log('WARN', '*** GROQ_API_KEY is not set! Set it before starting: GROQ_API_KEY=your_key npm run dev ***');
+    } else {
+      log('INFO', 'Groq API key detected. Ready to handle requests.');
+    }
   });
-});
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      log('ERROR', `Port ${PORT} is already in use.`);
+      log('ERROR', `Use: npx kill-port ${PORT} or set PORT to a different value.`);
+    } else {
+      log('ERROR', `Server failed to start: ${err.message}`, err);
+    }
+    process.exit(1);
+  });
+
+  process.on('uncaughtException', (err) => {
+    log('FATAL', `Uncaught exception: ${err.message}`, err);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    log('FATAL', 'Unhandled promise rejection', {
+      reason: reason instanceof Error ? reason.message : reason,
+    });
+  });
+}
