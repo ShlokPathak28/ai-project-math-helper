@@ -753,6 +753,16 @@ function renderChat(entry) {
 }
 
 // -- CALL OLLAMA --
+function stripThinkingBlocks(input) {
+  let out = String(input || '');
+  // Remove hidden reasoning blocks some models return.
+  out = out.replace(/<\s*think\b[^>]*>[\s\S]*?<\s*\/\s*think\s*>/gi, '');
+  out = out.replace(/<\s*analysis\b[^>]*>[\s\S]*?<\s*\/\s*analysis\s*>/gi, '');
+  out = out.replace(/<\s*\/?\s*think\b[^>]*>/gi, '');
+  out = out.replace(/<\s*\/?\s*analysis\b[^>]*>/gi, '');
+  return out.trim();
+}
+
 async function callGroq(messages) {
   let res;
   try {
@@ -777,7 +787,7 @@ async function callGroq(messages) {
   }
   if (!res.ok) throw new Error(data?.error?.message || `Error ${res.status}`);
   if (!data.text) throw new Error('Empty response from Groq.');
-  return data.text;
+  return stripThinkingBlocks(data.text);
 }
 
 const MODE_FORMAT = {
@@ -1183,7 +1193,7 @@ function buildLocalSolution(modeKey, rawProblem) {
 
 // -- PARSE --
 function parse(rawText) {
-  const text = String(rawText || '').replace(/\r\n/g, '\n').replace(/\*\*/g, '').replace(/\*/g, '');
+  const text = stripThinkingBlocks(rawText).replace(/\r\n/g, '\n').replace(/\*\*/g, '').replace(/\*/g, '');
   const out = [];
   const rows = text.split('\n');
   let i = 0;
@@ -1278,7 +1288,7 @@ function renderDeep(c) {
 const ICONS = { problem:'P', concept:'C', answer:'A', insight:'I', text:'' };
 function formatMathText(s) {
   if (!s) return s;
-  let out = s;
+  let out = stripThinkingBlocks(s);
   out = out.replace(/\\\(|\\\)/g, '');
   out = out.replace(/\\frac\{d\}\{dx\}/g, 'd/dx');
   out = out.replace(/\\text\s*\{([^}]*)\}/g, '$1');
@@ -1416,6 +1426,5 @@ loadModels();
 </script>
 </body>
 </html>
-
 
 
