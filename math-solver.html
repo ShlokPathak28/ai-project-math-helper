@@ -1,0 +1,1421 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Math Solver AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Source+Serif+4:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#f6f6f2; --bg2:#efefe9; --bg3:#e7e7df;
+  --surface:#fff; --surface2:#f6f5f0;
+  --border:#dad7cf; --border2:#c9c6be;
+  --text:#151515; --text2:#4b4b4b; --text3:#8b8b8b;
+  --shadow:0 6px 30px rgba(22,24,29,.08),0 2px 8px rgba(22,24,29,.06);
+  --fb:'Space Grotesk',sans-serif; --fd:'Source Serif 4',serif; --fm:'JetBrains Mono',monospace;
+  --t:.22s cubic-bezier(.4,0,.2,1);
+  --ma:#0f766e; --ma-bg:rgba(15,118,110,.08); --ma-bd:rgba(15,118,110,.25);
+  --accent:#f59e0b;
+}
+[data-theme=dark] {
+  --bg:#0f1113; --bg2:#16191c; --bg3:#1f2328;
+  --surface:#171a1e; --surface2:#1f2429;
+  --border:#262b31; --border2:#343a41;
+  --text:#f2f4f5; --text2:#b2b8be; --text3:#7c838a;
+  --shadow:0 6px 30px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.35);
+  --ma:#2dd4bf; --ma-bg:rgba(45,212,191,.10); --ma-bd:rgba(45,212,191,.28);
+  --accent:#f59e0b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);height:100vh;overflow:hidden;transition:background var(--t),color var(--t);font-size:15px}
+body::before{
+  content:'';
+  position:fixed;inset:-20vmax;
+  background:
+    radial-gradient(60vmax 40vmax at 10% 10%, rgba(245,158,11,.10), transparent 60%),
+    radial-gradient(50vmax 40vmax at 90% 20%, rgba(15,118,110,.10), transparent 60%),
+    linear-gradient(120deg, rgba(0,0,0,.02), rgba(255,255,255,.02));
+  pointer-events:none;z-index:0;
+}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+a{color:var(--ma)}
+
+.app{display:flex;height:100vh;position:relative;z-index:1}
+
+/* -- Sidebar -- */
+.sidebar{width:255px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:background var(--t),border-color var(--t),width var(--t),transform var(--t);overflow:hidden}
+.sb-inner,.sb-footer{transition:opacity var(--t)}
+body.sb-collapsed .sidebar{width:0;border-right:0}
+body.sb-collapsed .sb-inner,body.sb-collapsed .sb-footer{opacity:0;pointer-events:none}
+
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity var(--t);z-index:15}
+body.sb-open .backdrop{opacity:1;pointer-events:auto}
+.sb-inner{flex:1;overflow-y:auto;padding:22px 15px 12px;display:flex;flex-direction:column;gap:20px}
+.logo h1{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--ma);line-height:1.15;transition:color var(--t)}
+.logo p{font-size:11px;color:var(--text3);margin-top:3px;font-family:var(--fm)}
+.lbl{font-size:11px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+
+/* model */
+.model-select{width:100%;padding:9px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--fm);outline:none;cursor:pointer;transition:all var(--t)}
+.model-select:focus{border-color:var(--ma);box-shadow:0 0 0 3px var(--ma-bg)}
+.model-status{font-size:11px;margin-top:5px;font-family:var(--fm);color:var(--text3)}
+.model-status.ok{color:#16a34a}.model-status.err{color:#dc2626}
+.refresh-btn{margin-top:7px;width:100%;padding:6px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:12px;cursor:pointer;transition:all var(--t);font-family:var(--fm)}
+.refresh-btn:hover{background:var(--bg2);color:var(--text2)}
+
+/* mode */
+.mode-btn{width:100%;display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;border:1px solid transparent;background:transparent;cursor:pointer;text-align:left;transition:all var(--t);margin-bottom:4px;color:var(--text2)}
+.mode-btn:hover{background:var(--bg2);color:var(--text);transform:translateX(2px)}
+.mode-btn.active{background:var(--ma-bg);border-color:var(--ma-bd);color:var(--ma)}
+.mode-btn .icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.mode-btn .name{font-size:13px;font-weight:600;color:inherit;display:block}
+.mode-btn .desc{font-size:11px;opacity:.6;display:block;margin-top:1px}
+
+/* detail */
+.detail-wrap{display:flex;gap:4px}
+.detail-btn{flex:1;padding:7px 3px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-size:11px;font-family:var(--fm);text-align:center;transition:all var(--t)}
+.detail-btn:hover{background:var(--bg2);color:var(--text2)}
+.detail-btn.active{background:var(--ma-bg);border-color:var(--ma);color:var(--ma);font-weight:600}
+
+/* history */
+.history-item{width:100%;display:flex;align-items:center;gap:6px;padding:7px 9px;border-radius:6px;border:none;background:transparent;cursor:pointer;text-align:left;font-size:12px;color:var(--text3);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all var(--t)}
+.history-item:hover{background:var(--bg2);color:var(--text2)}
+.history-item.active{background:var(--surface2);color:var(--text)}
+.hist-badge{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);flex-shrink:0}
+
+/* sidebar footer */
+.sb-footer{border-top:1px solid var(--border);padding:11px 15px}
+.theme-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);cursor:pointer;border:none;background:none;padding:5px 9px;border-radius:6px;transition:all var(--t)}
+.theme-toggle:hover{background:var(--bg2);color:var(--text2)}
+.pill{width:30px;height:17px;border-radius:9px;background:var(--border2);position:relative;flex-shrink:0;transition:background var(--t)}
+.pill.on{background:var(--ma)}
+.pill::after{content:'';position:absolute;width:11px;height:11px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform var(--t)}
+.pill.on::after{transform:translateX(13px)}
+
+/* -- Main -- */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);transition:background var(--t);position:relative}
+.topbar{padding:15px 26px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0;transition:all var(--t);gap:16px;position:sticky;top:0;z-index:30}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.mode-top-select{display:none;min-width:130px;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-family:var(--fm);font-size:12px;color:var(--text);cursor:pointer}
+.mode-top-select:focus{border-color:var(--ma);box-shadow:0 0 0 3px var(--ma-bg)}
+.theme-top{display:none;min-width:60px;height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;align-items:center;justify-content:center;transition:all var(--t);font-size:12px;font-family:var(--fm)}
+.theme-top:hover{background:var(--bg2)}
+.sb-toggle{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t);font-size:16px}
+.sb-toggle:hover{background:var(--bg2)}
+.sb-toggle .bars{display:block;line-height:1}
+
+@media (max-width: 900px) {
+  .sidebar{position:fixed;left:0;top:0;height:100vh;z-index:20;width:260px;transform:translateX(-100%)}
+  body.sb-open .sidebar{transform:translateX(0)}
+  body.sb-collapsed .sidebar{width:260px}
+  body.sb-collapsed .sb-inner,body.sb-collapsed .sb-footer{opacity:1;pointer-events:auto}
+  .mode-top-select{display:block}
+  .theme-top{display:inline-flex}
+  .topbar{flex-wrap:wrap}
+  .topbar-hint{font-size:11px;margin-left:0;margin-top:6px;width:100%}
+}
+.mode-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--ma-bg);border:1px solid var(--ma-bd);font-size:12px;font-weight:600;color:var(--ma);transition:all var(--t)}
+.topbar-hint{font-size:12px;color:var(--text3);font-family:var(--fm);margin-left:12px}
+
+.scroll{flex:1;overflow-y:auto;padding:26px;display:flex;flex-direction:column;gap:18px;position:relative;z-index:1}
+
+/* input card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);transition:all var(--t)}
+.prob-ta{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:13px;color:var(--text);font-size:15px;font-family:var(--fm);line-height:1.7;resize:vertical;min-height:78px;outline:none;transition:all var(--t)}
+.prob-ta::placeholder{color:var(--text3)}
+.prob-ta:focus{border-color:var(--ma);background:var(--surface);box-shadow:0 0 0 3px var(--ma-bg)}
+
+/* drop zone */
+.drop{margin-top:11px;border:2px dashed var(--border2);border-radius:9px;padding:14px;text-align:center;cursor:pointer;transition:all var(--t);overflow:hidden}
+.drop:hover,.drop.over{border-color:var(--ma);background:var(--ma-bg)}
+.drop-empty{color:var(--text3);font-size:13px;pointer-events:none}
+.drop-icon{font-size:20px;margin-bottom:3px}
+
+/* image preview - full width, proper scaling */
+.img-wrap{position:relative;width:100%}
+.img-wrap img{width:100%;max-height:240px;object-fit:contain;border-radius:6px;display:block;background:var(--bg3)}
+.rm-btn{position:absolute;top:7px;right:7px;padding:4px 10px;background:rgba(0,0,0,.55);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;backdrop-filter:blur(4px);transition:background var(--t)}
+.rm-btn:hover{background:rgba(0,0,0,.8)}
+
+/* OCR status */
+.ocr-bar{display:none;align-items:center;gap:8px;margin-top:9px;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:var(--fm);color:var(--text2)}
+.ocr-bar.show{display:flex}
+.ocr-done{margin-top:9px;padding:8px 12px;background:var(--ma-bg);border:1px solid var(--ma-bd);border-radius:8px;font-size:12px;font-family:var(--fm);color:var(--ma);display:none}
+.ocr-done.show{display:block}
+
+.solve-row{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:13px}
+.hint{font-size:11px;color:var(--text3);font-family:var(--fm)}
+.solve-btn{padding:9px 24px;background:var(--ma);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;font-family:var(--fb);cursor:pointer;display:flex;align-items:center;gap:7px;transition:all var(--t)}
+.solve-btn:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
+.solve-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.mini-btn{padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-family:var(--fm);cursor:pointer;transition:all var(--t)}
+.mini-btn:hover{background:var(--bg2);color:var(--text)}
+.mini-btn.active{background:var(--ma-bg);border-color:var(--ma-bd);color:var(--ma)}
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+
+/* solution */
+.sol-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);animation:fadeIn .3s ease;transition:all var(--t)}
+.sol-head{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)}
+.sol-head-l{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--text2)}
+.sol-badge{font-size:12px;font-weight:700;color:var(--ma);transition:color var(--t)}
+.detail-tag{font-size:11px;font-family:var(--fm);color:var(--text3);padding:2px 7px;border-radius:4px;background:var(--bg3);border:1px solid var(--border)}
+.sol-body{padding:18px;display:flex;flex-direction:column;gap:5px}
+
+/* step lines */
+.sline{border-radius:7px;overflow:hidden}
+.smain{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;transition:background var(--t)}
+.smain.click{cursor:pointer}
+.smain.click:hover{background:var(--bg2)}
+.sbadge{width:22px;height:22px;border-radius:50%;background:var(--ma);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background var(--t)}
+.sicon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;margin-top:1px;background:var(--bg3);border:1px solid var(--border);border-radius:50%;color:var(--text2)}
+.scontent{flex:1;min-width:0}
+.stext{font-family:var(--fm);font-size:14px;color:var(--text);line-height:1.65}
+.stip{font-size:12px;color:var(--text3);font-style:italic;margin-top:3px;font-family:var(--fb)}
+.sexpand{font-size:11px;color:var(--ma);flex-shrink:0;opacity:.7;align-self:center;font-family:var(--fm);white-space:nowrap;user-select:none}
+.sline[data-open="1"] .sexpand::after{content:'less'}
+.sline[data-open="0"] .sexpand::after{content:'explain'}
+
+.l-problem{background:var(--bg2);border:1px solid var(--border)}
+.l-problem .stext{color:var(--text2);font-size:12px}
+.l-concept{background:var(--ma-bg);border:1px solid var(--ma-bd)}
+.l-step{border:1px solid var(--border)}
+.l-answer{background:var(--ma-bg);border:2px solid var(--ma)}
+.l-answer .stext{color:var(--ma);font-size:15px;font-weight:500}
+.l-insight{border:1px dashed var(--border2)}
+.l-insight .stext{font-family:var(--fb);font-size:13px;font-style:italic;color:var(--text2)}
+
+.deep-panel{margin:0 0 0 31px;padding:11px 13px;background:var(--ma-bg);border-left:3px solid var(--ma);border-radius:0 6px 6px 0;animation:fadeIn .2s ease;font-size:14px;color:var(--text2);line-height:1.7;font-family:var(--fb);white-space:pre-wrap}
+.deep-thinking{color:var(--ma);font-family:var(--fm);font-size:12px;animation:pulse 1.2s ease-in-out infinite}
+
+.sol-footer{padding:11px 15px;background:var(--surface2);border-radius:7px;font-size:12px;color:var(--text3);text-align:center;font-family:var(--fm);border:1px solid var(--border)}
+
+.chat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;min-height:360px}
+.chat-head{padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text3);font-family:var(--fm);background:var(--surface2)}
+.chat-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:85%;padding:10px 12px;border-radius:10px;font-size:14px;line-height:1.5}
+.chat-msg.user{align-self:flex-end;background:var(--ma);color:#fff}
+.chat-msg.ai{align-self:flex-start;background:var(--bg2);color:var(--text);cursor:pointer}
+.chat-msg.ai:hover{background:var(--surface2)}
+.chat-msg.selected{outline:1px solid var(--ma);outline-offset:2px}
+.chat-input{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border);background:var(--surface)}
+.chat-input input{flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-family:var(--fm);font-size:14px;color:var(--text);outline:none}
+.chat-input button{padding:9px 14px;border-radius:8px;border:none;background:var(--ma);color:#fff;font-weight:600;font-size:13px;cursor:pointer}
+
+.empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-glyph{font-family:var(--fd);font-size:54px;margin-bottom:12px;opacity:.3;color:var(--ma);transition:color var(--t)}
+.empty p{font-size:15px;margin-bottom:5px}
+.empty small{font-size:12px;font-family:var(--fm);opacity:.7}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>
+</head>
+<body data-theme="light">
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sb-inner">
+
+      <div class="logo">
+        <h1>Math<br>Solver AI</h1>
+        <p>// powered by Groq Cloud</p>
+      </div>
+
+      <div>
+        <div class="lbl">Model</div>
+        <select class="model-select" id="modelSelect"><option value="">Loading...</option></select>
+        <div class="model-status" id="modelStatus">Connecting to Groq...</div>
+        <button class="refresh-btn" id="refreshBtn">Refresh models</button>
+      </div>
+
+      <div>
+        <div class="lbl">Teaching Mode</div>
+        <button class="mode-btn active" data-mode="teacher"><span class="icon">T</span><span><span class="name">Teacher</span><span class="desc">Formal, rigorous</span></span></button>
+        <button class="mode-btn" data-mode="friend"><span class="icon">F</span><span><span class="name">Friend</span><span class="desc">Casual, fun</span></span></button>
+        <button class="mode-btn" data-mode="father"><span class="icon">P</span><span><span class="name">Parent</span><span class="desc">Warm, patient</span></span></button>
+      </div>
+
+      <div>
+        <div class="lbl">Detail Level</div>
+        <div class="detail-wrap">
+          <button class="detail-btn" data-detail="brief">Brief</button>
+          <button class="detail-btn active" data-detail="standard">Standard</button>
+          <button class="detail-btn" data-detail="deep">Deep</button>
+        </div>
+      </div>
+
+      <div id="histSec" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+        <div class="lbl">History</div>
+        <div id="histList" style="overflow-y:auto;flex:1"></div>
+      </div>
+
+    </div>
+    <div class="sb-footer">
+      <button class="theme-toggle" id="themeBtn">
+        <div class="pill" id="pill"></div>
+        <span id="themeLabel">Light</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="backdrop" id="backdrop"></div>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sb-toggle" id="sidebarToggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+          <span class="bars">&#9776;</span>
+        </button>
+        <div class="mode-pill" id="modePill">Teacher Mode</div>
+        <select class="mode-top-select" id="modeTop" aria-label="Change mode">
+          <option value="teacher">Teacher</option>
+          <option value="friend">Friend</option>
+          <option value="father">Parent</option>
+        </select>
+        <button class="theme-top" id="themeTop" title="Toggle theme" aria-label="Toggle theme">Theme</button>
+      </div>
+      <div class="topbar-hint">Click any step for a deeper explanation</div>
+    </div>
+    <div class="scroll">
+
+      <div class="card">
+        <textarea class="prob-ta" id="probInput" rows="3"
+          placeholder="Type a math problem here... or drop an image below.&#10;e.g. Solve 2x^2 + 5x - 3 = 0"></textarea>
+
+        <!-- drop zone - image previews full-width here -->
+        <div class="drop" id="drop">
+          <div id="dropContent">
+            <div class="drop-empty">
+              <div class="drop-icon">IMG</div>
+              <div>Drop an image or click to upload</div>
+            </div>
+          </div>
+        </div>
+        <input type="file" accept="image/*" id="fileInput" style="display:none"/>
+
+        <!-- OCR status bar -->
+        <div class="ocr-bar" id="ocrBar">
+          <div class="spinner" style="border-color:rgba(0,0,0,.15);border-top-color:var(--ma)"></div>
+          <span id="ocrMsg">Reading image...</span>
+        </div>
+        <!-- OCR result badge (shown when OCR succeeds) -->
+        <div class="ocr-done" id="ocrDone"></div>
+
+        <div class="solve-row">
+          <span class="hint">Ctrl+Enter to solve</span>
+          <button class="mini-btn" id="followBtn" title="Ask a follow-up about the same solution">Follow-up</button>
+          <button class="mini-btn" id="newBtn" title="Start a new problem">New</button>
+          <button class="solve-btn" id="solveBtn" disabled>
+            <span id="solveTxt">Solve</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="solArea">
+        <div class="empty">
+          <div class="empty-glyph">M</div>
+          <p>Enter a problem or drop an image to get started</p>
+          <small>algebra - calculus - geometry - trigonometry - statistics</small>
+        </div>
+      </div>
+
+      <div class="chat-card" id="chatCard">
+        <div class="chat-head">Follow-up Chat</div>
+        <div class="chat-body" id="chatBody"></div>
+        <div class="chat-input">
+          <input id="chatInput" type="text" placeholder="Ask a follow-up..." />
+          <button id="chatSend">Send</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+// -- MODES --
+const MODES = {
+  teacher: {
+    label:'Teacher', badge:'T',
+    accent:{light:'#0f766e',dark:'#2dd4bf'},
+    bg:{light:'rgba(15,118,110,.08)',dark:'rgba(45,212,191,.10)'},
+    bd:{light:'rgba(15,118,110,.25)',dark:'rgba(45,212,191,.28)'},
+    prompt:`You are a professional math teacher. Be formal, precise, and rigorous. Do not include analysis or thinking; output only the required lines. Format your response EXACTLY like this - one item per line, no bullet points, no markdown:
+PROBLEM: [restate the problem clearly]
+CONCEPT: [the main math concept involved]
+STEP 1: [what you do and the result]
+STEP 2: [what you do and the result]
+ANSWER: [the final answer]
+INSIGHT: [key takeaway for the student]
+Rules: Every STEP must be a single line. No extra labels like "|||". No blank lines between items. Use plain text only (no LaTeX). Use distinctive wording from other modes.`
+  },
+  friend: {
+    label:'Friend', badge:'F',
+    accent:{light:'#2563eb',dark:'#60a5fa'},
+    bg:{light:'rgba(37,99,235,.08)',dark:'rgba(96,165,250,.10)'},
+    bd:{light:'rgba(37,99,235,.25)',dark:'rgba(96,165,250,.28)'},
+    prompt:`You are a fun best friend helping with math. Be casual, upbeat, and conversational. Do not include analysis or thinking; output only the required lines. Format your response EXACTLY like this - one item per line:
+PROBLEM: [restate casually]
+VIBE: [a fun analogy or real-world connection]
+STEP 1: [casual explanation and result]
+STEP 2: [casual explanation and result]
+ANSWER: [the answer with enthusiasm]
+PRO TIP: [a memory trick or shortcut]
+Rules: Every STEP must be a single line. No extra labels like "|||". No blank lines between items. Use plain text only (no LaTeX). Use distinctive wording from other modes.`
+  },
+  father: {
+    label:'Parent', badge:'P',
+    accent:{light:'#b45309',dark:'#f59e0b'},
+    bg:{light:'rgba(180,83,9,.08)',dark:'rgba(245,158,11,.10)'},
+    bd:{light:'rgba(180,83,9,.25)',dark:'rgba(245,158,11,.28)'},
+    prompt:`You are a warm, patient parent helping with homework. Be gentle, encouraging, and nurturing. Do not include analysis or thinking; output only the required lines. Format your response EXACTLY like this - one item per line:
+PROBLEM: [restate warmly]
+LIFE CONNECTION: [how this applies to real life]
+STEP 1: [patient explanation and result]
+STEP 2: [patient explanation and result]
+ANSWER: [the answer with encouragement]
+LIFE LESSON: [broader wisdom]
+Rules: Every STEP must be a single line. No extra labels like "|||". No blank lines between items. Use plain text only (no LaTeX). Use distinctive wording from other modes.`
+  }
+};
+
+const DETAIL = {
+  brief:    'Be very concise. Use 2-3 steps total. Each step should be high-level.',
+  standard: 'Use 4-6 steps. Include the important intermediate results.',
+  deep:     'Use 8-12 steps. Show micro-steps and explain each operation.'
+};
+
+// -- STATE --
+let mode   = 'teacher';
+let detail = 'standard';
+let dark   = false;
+let model  = '';
+let imgData = null; // base64 string (no prefix)
+let imgUrl  = null;
+let ocrText = '';   // text extracted from image via server OCR
+let history = [];
+let activeId = null;
+const ENABLE_OCR = true;
+let followUp = false;
+
+function newId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+// -- ELEMENTS --
+const modelSelect = document.getElementById('modelSelect');
+const modelStatus = document.getElementById('modelStatus');
+const refreshBtn  = document.getElementById('refreshBtn');
+const solveBtn    = document.getElementById('solveBtn');
+const solveTxt    = document.getElementById('solveTxt');
+const probInput   = document.getElementById('probInput');
+const followBtn   = document.getElementById('followBtn');
+const newBtn      = document.getElementById('newBtn');
+const drop        = document.getElementById('drop');
+const dropContent = document.getElementById('dropContent');
+const fileInput   = document.getElementById('fileInput');
+const solArea     = document.getElementById('solArea');
+const modePill    = document.getElementById('modePill');
+const modeTop     = document.getElementById('modeTop');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const backdrop    = document.getElementById('backdrop');
+const themeBtn    = document.getElementById('themeBtn');
+const themeTop    = document.getElementById('themeTop');
+const pill        = document.getElementById('pill');
+const themeLabel  = document.getElementById('themeLabel');
+const histSec     = document.getElementById('histSec');
+const histList    = document.getElementById('histList');
+const ocrBar      = document.getElementById('ocrBar');
+const ocrMsg      = document.getElementById('ocrMsg');
+const ocrDone     = document.getElementById('ocrDone');
+const chatCard    = document.getElementById('chatCard');
+const chatBody    = document.getElementById('chatBody');
+const chatInput   = document.getElementById('chatInput');
+const chatSend    = document.getElementById('chatSend');
+
+// -- COLORS / THEME --
+function applyColors() {
+  const m = MODES[mode]; const t = dark ? 'dark' : 'light';
+  const s = document.documentElement.style;
+  s.setProperty('--ma',    m.accent[t]);
+  s.setProperty('--ma-bg', m.bg[t]);
+  s.setProperty('--ma-bd', m.bd[t]);
+}
+function applyTheme() {
+  document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+  pill.classList.toggle('on', dark);
+  themeLabel.textContent = dark ? 'Dark' : 'Light';
+  applyColors();
+}
+themeBtn.addEventListener('click', () => { dark = !dark; applyTheme(); });
+if (themeTop) {
+  themeTop.addEventListener('click', () => { dark = !dark; applyTheme(); });
+}
+
+// ---- SIDEBAR ----
+function isMobile() {
+  return window.matchMedia('(max-width: 900px)').matches;
+}
+const SB_KEY = 'sb-collapsed';
+function closeSidebar() {
+  document.body.classList.remove('sb-open');
+}
+function setCollapsed(on) {
+  document.body.classList.toggle('sb-collapsed', !!on);
+  try { localStorage.setItem(SB_KEY, on ? '1' : '0'); } catch {}
+}
+function toggleSidebar() {
+  if (isMobile()) {
+    document.body.classList.toggle('sb-open');
+  } else {
+    setCollapsed(!document.body.classList.contains('sb-collapsed'));
+  }
+}
+sidebarToggle.addEventListener('click', toggleSidebar);
+backdrop.addEventListener('click', closeSidebar);
+window.addEventListener('resize', () => {
+  if (!isMobile()) {
+    closeSidebar();
+    try {
+      const saved = localStorage.getItem(SB_KEY) === '1';
+      setCollapsed(saved);
+    } catch {}
+  }
+});
+try {
+  if (!isMobile()) {
+    const saved = localStorage.getItem(SB_KEY) === '1';
+    setCollapsed(saved);
+  }
+} catch {}
+
+// -- MODELS --
+async function loadModels() {
+  modelStatus.textContent = 'Connecting to Groq...';
+  modelStatus.className = 'model-status';
+  setModelOptions([], 'Loading...');
+  try {
+    const res  = await fetch('/api/models');
+    const data = await res.json();
+    const list = data.models || [];
+    if (!list.length) {
+      setModelOptions([], 'No models found');
+      modelStatus.textContent = '! Set GROQ_API_KEY and restart server';
+      modelStatus.className = 'model-status err';
+    } else {
+      setModelOptions(list);
+      model = list[0]?.name || '';
+      modelStatus.textContent = `OK ${list.length} model${list.length > 1 ? 's' : ''} ready`;
+      modelStatus.className = 'model-status ok';
+    }
+  } catch {
+    setModelOptions([], 'Cannot reach Groq');
+    modelStatus.textContent = '! Check GROQ_API_KEY in server';
+    modelStatus.className = 'model-status err';
+  }
+  updateBtn();
+}
+modelSelect.addEventListener('change', () => { model = modelSelect.value; updateBtn(); });
+
+function setModelOptions(models, fallbackLabel = '') {
+  modelSelect.innerHTML = '';
+  if (!Array.isArray(models) || !models.length) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = fallbackLabel || 'No models found';
+    modelSelect.appendChild(opt);
+    return;
+  }
+  for (const m of models) {
+    const name = typeof m?.name === 'string' ? m.name : '';
+    if (!name) continue;
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    modelSelect.appendChild(opt);
+  }
+}
+refreshBtn.addEventListener('click', loadModels);
+
+// -- MODES --
+function setMode(newMode, opts = {}) {
+  const { clear = true } = opts;
+  mode = newMode;
+  document.querySelectorAll('.mode-btn').forEach(x => x.classList.toggle('active', x.dataset.mode === newMode));
+  modePill.textContent = MODES[mode].label + ' Mode';
+  if (modeTop) modeTop.value = newMode;
+  applyColors();
+  if (clear) clearSol();
+}
+document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', () => {
+  setMode(b.dataset.mode, { clear: true });
+}));
+if (modeTop) {
+  modeTop.addEventListener('change', () => {
+    setMode(modeTop.value, { clear: true });
+  });
+}
+
+// -- DETAIL --
+document.querySelectorAll('.detail-btn').forEach(b => b.addEventListener('click', () => {
+  detail = b.dataset.detail;
+  document.querySelectorAll('.detail-btn').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+}));
+
+// -- IMAGE UPLOAD + OCR --
+drop.addEventListener('click', () => { if (!imgUrl) fileInput.click(); });
+drop.addEventListener('dragover',  e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => {
+  e.preventDefault(); drop.classList.remove('over');
+  if (e.dataTransfer.files[0]) loadImg(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadImg(fileInput.files[0]); });
+
+// Paste image from clipboard into the drop area or textarea
+function handlePaste(e) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const it of items) {
+    if (it.type && it.type.startsWith('image/')) {
+      const file = it.getAsFile();
+      if (file) {
+        e.preventDefault();
+        loadImg(file);
+        return;
+      }
+    }
+  }
+}
+probInput.addEventListener('paste', handlePaste);
+drop.addEventListener('paste', handlePaste);
+document.addEventListener('paste', handlePaste);
+
+function loadImg(file) {
+  if (imgUrl) URL.revokeObjectURL(imgUrl);
+  imgUrl  = URL.createObjectURL(file);
+  imgData = null;
+  ocrText = '';
+  ocrDone.className = 'ocr-done';
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    imgData = reader.result.split(',')[1]; // base64 without prefix
+    renderDrop();
+    updateBtn();
+    if (ENABLE_OCR) await tryOCR();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function tryOCR() {
+  // Ask the server to OCR the image (works if npm install tesseract.js was run)
+  ocrBar.className = 'ocr-bar show';
+  ocrMsg.textContent = 'Reading image with OCR...';
+  try {
+    const res  = await fetch('/api/ocr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: imgData })
+    });
+    const data = await res.json();
+    ocrBar.className = 'ocr-bar';
+
+    if (data.text) {
+      ocrText = data.text;
+      ocrDone.textContent  = 'OCR extracted: ' + ocrText.slice(0, 80) + (ocrText.length > 80 ? '...' : '');
+      ocrDone.className    = 'ocr-done show';
+      updateBtn();
+    }
+    // If data.error === 'tesseract_not_installed' we just silently continue -
+    // solve() will describe the image as text to the model instead
+  } catch {
+    ocrBar.className = 'ocr-bar'; // hide on error, no noise
+  }
+}
+
+function rmImg(e) {
+  e.stopPropagation();
+  if (imgUrl) URL.revokeObjectURL(imgUrl);
+  imgData = imgUrl = null; ocrText = '';
+  fileInput.value = '';
+  ocrBar.className = 'ocr-bar';
+  ocrDone.className = 'ocr-done';
+  followUp = false; setFollowUpUI();
+  renderDrop(); updateBtn();
+}
+
+function renderDrop() {
+  if (imgUrl) {
+    drop.classList.add('has-img');
+    dropContent.innerHTML = `
+      <div class="img-wrap">
+        <img src="${imgUrl}" alt="Math problem image"/>
+        <button class="rm-btn" id="rmBtn">Remove</button>
+      </div>`;
+    document.getElementById('rmBtn').addEventListener('click', rmImg);
+  } else {
+    drop.classList.remove('has-img');
+    dropContent.innerHTML = `
+      <div class="drop-empty">
+        <div class="drop-icon">IMG</div>
+        <div>Drop an image or click to upload</div>
+      </div>`;
+  }
+}
+
+// -- SOLVE BUTTON --
+probInput.addEventListener('input', updateBtn);
+probInput.addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') solve(); });
+followBtn.addEventListener('click', () => { followUp = !followUp; setFollowUpUI(); });
+newBtn.addEventListener('click', () => { startNewProblem(); });
+chatSend.addEventListener('click', () => { submitChat(); });
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitChat(); });
+function setFollowUpUI() {
+  followBtn.classList.toggle('active', followUp);
+}
+function startNewProblem() {
+  followUp = false;
+  activeId = null;
+  history = [];
+  renderHistory();
+  renderEmptyState();
+  setFollowUpUI();
+  chatBody.innerHTML = '';
+}
+
+function submitChat() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  probInput.value = text;
+  followUp = true;
+  setFollowUpUI();
+  chatInput.value = '';
+  solve({ forceFollow: true });
+}
+function updateBtn() {
+  solveBtn.disabled = !(model && (probInput.value.trim() || imgData));
+}
+
+function cleanPromptForDisplay(text) {
+  if (!text) return '';
+  let out = String(text).trim();
+  out = out.replace(/^Math problem:\s*/i, '');
+  out = out.replace(/^Follow-up question about the same problem:\s*/i, '');
+  out = out.replace(/\n?Respond using the exact required format[\s\S]*$/i, '').trim();
+  return out || 'Problem';
+}
+
+function addChatMessage(role, text, onSelect) {
+  const m = document.createElement('div');
+  m.className = 'chat-msg ' + (role === 'user' ? 'user' : 'ai');
+  m.textContent = formatMathText(role === 'user' ? cleanPromptForDisplay(text) : text);
+  if (role === 'assistant' && typeof onSelect === 'function') {
+    m.addEventListener('click', () => {
+      document.querySelectorAll('.chat-msg.selected').forEach(x => x.classList.remove('selected'));
+      m.classList.add('selected');
+      onSelect();
+    });
+  }
+  chatBody.appendChild(m);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function renderChat(entry) {
+  chatBody.innerHTML = '';
+  chatCard.style.display = 'flex';
+  if (!entry || !entry.messages || entry.messages.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:var(--text3);font-family:var(--fm);font-size:12px;text-align:center;padding:20px 8px';
+    empty.textContent = 'No follow-ups yet. Ask a question below.';
+    chatBody.appendChild(empty);
+    return;
+  }
+  for (const msg of entry.messages) {
+    if (msg.role === 'user') {
+      addChatMessage(msg.role, msg.content);
+    } else if (msg.role === 'assistant') {
+      addChatMessage(msg.role, msg.content, () => {
+        const parsed = parse(msg.content || '');
+        renderSolution(parsed);
+        if (typeof solArea.scrollIntoView === 'function') {
+          solArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+  }
+  if (typeof chatCard.scrollIntoView === 'function') {
+    chatCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+}
+
+// -- CALL OLLAMA --
+async function callGroq(messages) {
+  let res;
+  try {
+    res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        messages
+      })
+    });
+  } catch {
+    throw new Error('Cannot reach the server. Make sure server is running with your GROQ_API_KEY set.');
+  }
+  const raw = await res.text();
+  let data = null;
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+    throw new Error('Server returned non-JSON response.');
+  }
+  if (!res.ok) throw new Error(data?.error?.message || `Error ${res.status}`);
+  if (!data.text) throw new Error('Empty response from Groq.');
+  return data.text;
+}
+
+const MODE_FORMAT = {
+  teacher: {
+    required: [/^PROBLEM\s*:/i, /^CONCEPT\s*:/i, /^STEP\s*\d+\s*:/i, /^ANSWER\s*:/i, /^(INSIGHT)\s*:/i],
+    end: /^(INSIGHT)\s*:/i
+  },
+  friend: {
+    required: [/^PROBLEM\s*:/i, /^VIBE\s*:/i, /^STEP\s*\d+\s*:/i, /^ANSWER\s*:/i, /^(PRO TIP)\s*:/i],
+    end: /^(PRO TIP)\s*:/i
+  },
+  father: {
+    required: [/^PROBLEM\s*:/i, /^(LIFE CONNECTION)\s*:/i, /^STEP\s*\d+\s*:/i, /^ANSWER\s*:/i, /^(LIFE LESSON)\s*:/i],
+    end: /^(LIFE LESSON)\s*:/i
+  }
+};
+
+function isValidFormat(text, modeKey) {
+  const fmt = MODE_FORMAT[modeKey];
+  if (!fmt) return true;
+  const lines = String(text).split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return false;
+
+  let hasProblem = false;
+  let hasAnswer = false;
+  let hasEnd = false;
+  let stepCount = 0;
+  let hasAnyStructured = false;
+
+  for (const line of lines) {
+    if (/^PROBLEM\s*:/i.test(line)) { hasProblem = true; hasAnyStructured = true; continue; }
+    if (/^ANSWER\s*:/i.test(line)) { hasAnswer = true; hasAnyStructured = true; continue; }
+    if (fmt.end.test(line)) { hasEnd = true; hasAnyStructured = true; continue; }
+    if (/^STEP\s*\d+\s*:/i.test(line)) { stepCount++; hasAnyStructured = true; continue; }
+    if (fmt.required.some(re => re.test(line))) { hasAnyStructured = true; continue; }
+    // Allow occasional continuation lines to avoid false negatives on otherwise valid outputs.
+    if (hasAnyStructured && !/^[A-Z][A-Z\s]+:/.test(line)) continue;
+    return false;
+  }
+
+  return hasProblem && hasAnswer && hasEnd && stepCount >= 2;
+}
+
+function isUsableParsedSolution(parsed, opts = {}) {
+  const { requireAnswer = true } = opts;
+  if (!Array.isArray(parsed) || !parsed.length) return false;
+  const hasAnswer = parsed.some(l => l.type === 'answer' && String(l.text || '').trim());
+  const steps = parsed.filter(l => l.type === 'step');
+  const hasRichText = parsed.filter(l => l.type === 'text' && String(l.text || '').trim()).length >= 2;
+  if (!requireAnswer) return hasAnswer || steps.length >= 1 || hasRichText;
+  return hasAnswer && (steps.length >= 1 || hasRichText);
+}
+
+function isConceptualProblem(text) {
+  const s = String(text || '').trim().toLowerCase();
+  if (!s) return false;
+  const hasMathOps = /[\d=+\-*/^]/.test(s);
+  const conceptualCue = /^(what|why|how|explain|define|when|difference between)\b/.test(s)
+    || /\b(differentiation|derivative|integral|concept|definition|theorem|rule)\b/.test(s);
+  return conceptualCue && !hasMathOps;
+}
+
+function coerceParsedSolution(rawText, problemText, modeKey, opts = {}) {
+  const { conceptual = false } = opts;
+  const parsed = parse(rawText);
+  if (isUsableParsedSolution(parsed, { requireAnswer: !conceptual })) return parsed;
+
+  const lines = String(rawText || '').split('\n').map(l => l.trim()).filter(Boolean);
+  const stepLines = [];
+  let answer = '';
+
+  for (const l of lines) {
+    const m = l.match(/^(ANSWER|FINAL ANSWER|RESULT)\s*:?\s*(.+)$/i);
+    if (m && m[2]) {
+      answer = m[2].trim();
+      continue;
+    }
+    if (/^(PROBLEM|CONCEPT|VIBE|LIFE CONNECTION|INSIGHT|PRO TIP|LIFE LESSON)\s*:/i.test(l)) continue;
+    stepLines.push(l.replace(/^\d+[\)\].:-]\s*/, '').trim());
+  }
+
+  if (!answer) {
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const nums = extractNumericCandidates(lines[i]);
+      if (nums.length) {
+        answer = String(nums[nums.length - 1]);
+        break;
+      }
+    }
+  }
+  if (!answer && stepLines.length) answer = stepLines[stepLines.length - 1];
+  if (!answer) answer = conceptual ? '' : 'See final step above.';
+
+  const conceptByMode = modeKey === 'friend'
+    ? 'Break the problem into manageable pieces.'
+    : modeKey === 'father'
+      ? 'Solve calmly one step at a time.'
+      : 'Use step-by-step simplification.';
+  const insightByMode = modeKey === 'friend'
+    ? 'Verify by plugging your result back in.'
+    : modeKey === 'father'
+      ? 'Careful steps reduce mistakes.'
+      : 'Check the final answer against the original expression.';
+
+  const out = [
+    { type: 'problem', text: `${conceptual ? 'Question' : 'Solve'}: ${String(problemText || '').trim() || 'Math problem'}`, tip: null },
+    { type: 'concept', text: conceptByMode, tip: null },
+  ];
+  const picks = stepLines.filter(Boolean).slice(0, conceptual ? 10 : 8);
+  if (picks.length) {
+    for (const s of picks) out.push({ type: conceptual ? 'text' : 'step', text: s, tip: null });
+  } else {
+    out.push({ type: conceptual ? 'text' : 'step', text: 'No structured steps found; showing raw explanation.', tip: null });
+  }
+  if (!conceptual) out.push({ type: 'answer', text: answer, tip: null });
+  out.push({ type: 'insight', text: insightByMode, tip: null });
+  return out;
+}
+
+function buildLastResortSolution(rawText, problemText) {
+  const lines = String(rawText || '')
+    .split('\n')
+    .map(l => l.trim())
+    .filter(Boolean)
+    .slice(0, 16);
+  const body = lines.length ? lines : ['The model returned an empty or unstructured response.'];
+  const out = [
+    { type: 'problem', text: `Question: ${String(problemText || '').trim() || 'Math problem'}`, tip: null },
+    { type: 'concept', text: 'Interpreting model response', tip: null },
+  ];
+  for (const line of body) out.push({ type: 'text', text: line, tip: null });
+  out.push({ type: 'insight', text: 'Try switching model if the explanation is still unclear.', tip: null });
+  return out;
+}
+
+async function reformatIfNeeded(rawText, modeKey) {
+  if (isValidFormat(rawText, modeKey)) return rawText;
+  const modePrompt = MODES[modeKey]?.prompt || '';
+  const sys = `You are a strict formatter. Output ONLY the required lines in plain text. No extra commentary. Follow the exact format below:\n${modePrompt}`;
+  const user = `Reformat the response into the required format for this mode. Preserve the math content and steps.\n\nResponse:\n<<<\n${rawText}\n>>>`;
+  const text = await callGroq([{ role: 'system', content: sys }, { role: 'user', content: user }]);
+  return text;
+}
+
+// -- SOLVE --
+async function solve(opts = {}) {
+  if (solveBtn.disabled) return;
+
+  const typed = probInput.value.trim();
+
+  // Build the problem description to send to the model:
+  // Priority: typed text > OCR text > image description fallback
+  let problem;
+  if (typed)                 problem = typed;
+  else if (ENABLE_OCR && ocrText) problem = ocrText;
+  else if (imgData)          problem = 'Solve the math problem shown in the attached image. Describe what you see and solve it step by step.';
+  else return;
+
+  setLoading(true);
+  clearSol();
+
+  const sys = MODES[mode].prompt + '\n\n' + DETAIL[detail] +
+    '\n\nMath notation rule: treat adjacent parentheses/numbers/variables as multiplication (e.g., (2+1)0 = (2+1)*0, 2(3+4)=2*(3+4)). Do not rewrite the problem into a different expression.';
+
+  try {
+    const images = imgData ? [imgData] : null;
+    const labelSource = typed || ocrText || 'Image problem';
+    const label = makeHistoryLabel(labelSource);
+    const sysMsg = { role: 'system', content: sys };
+    let entry = activeId ? history.find(h => h.id === activeId) : null;
+    let wantFollow = !!opts.forceFollow || followUp;
+    if (!wantFollow && chatCard.style.display === 'block') wantFollow = true;
+    if (!entry && wantFollow && history.length) {
+      entry = history[0];
+      activeId = entry.id;
+    }
+    const isFollow = wantFollow && entry;
+
+    if (!isFollow) {
+      entry = { id: newId(), problem: label.slice(0, 55), mode, detail, solution: [], messages: [] };
+      history.unshift(entry);
+      if (history.length > 10) history.pop();
+      activeId = entry.id;
+    }
+
+    const conceptual = isConceptualProblem(problem);
+    const followHint = conceptual
+      ? 'Respond clearly in plain text. Prefer labeled sections, but correctness and clarity matter more than strict labels.'
+      : 'Respond using the exact required format for this mode (PROBLEM/CONCEPT/STEP/ANSWER/INSIGHT or its variants).';
+    const normalizedProblem = normalizeProblemText(problem);
+    const userText = isFollow
+      ? `Follow-up question about the same problem: ${normalizeProblemText(typed)}\n${followHint}`
+      : `Math problem: ${normalizedProblem}\n${followHint}`;
+    const userMsg = images && images.length
+      ? { role: 'user', content: userText, images }
+      : { role: 'user', content: userText };
+    const messages = [sysMsg, ...entry.messages, userMsg];
+
+    let text = null;
+    if (!images && !isFollow && isSimpleArithmetic(normalizedProblem)) {
+      text = buildLocalSolution(mode, normalizedProblem);
+    }
+    if (!text) text = await callGroq(messages);
+    text = await reformatIfNeeded(text, mode);
+    let parsed = parse(text);
+    const probForCheck = normalizeProblemText(problem);
+    let sane = conceptual ? true : isSaneSolution(parsed, probForCheck);
+    let validFmt = isValidFormat(text, mode);
+    let usable = isUsableParsedSolution(parsed, { requireAnswer: !conceptual });
+    if (!sane || !validFmt) {
+      const strictHint = 'Your previous response had missing/invalid formatting or inconsistent ANSWER. Recompute and output ONLY the required labeled lines. The ANSWER must match the final computed result. Do not output single-letter lines (e.g., "A", "C", "I").';
+      const retryUser = isFollow
+        ? { role: 'user', content: `Follow-up question about the same problem: ${normalizeProblemText(typed)}\n${followHint}\n${strictHint}` }
+        : { role: 'user', content: `Math problem: ${normalizeProblemText(problem)}\n${followHint}\n${strictHint}` };
+      const retryMessages = [sysMsg, ...entry.messages, retryUser];
+      text = await callGroq(retryMessages);
+      text = await reformatIfNeeded(text, mode);
+      parsed = parse(text);
+      sane = conceptual ? true : isSaneSolution(parsed, probForCheck);
+      validFmt = isValidFormat(text, mode);
+      usable = isUsableParsedSolution(parsed, { requireAnswer: !conceptual });
+    }
+    // Format is best-effort; if parsing still fails, coerce to a displayable structure.
+    if (!usable) {
+      parsed = coerceParsedSolution(text, problem, mode, { conceptual });
+      usable = isUsableParsedSolution(parsed, { requireAnswer: !conceptual });
+    }
+    if (!usable) {
+      parsed = buildLastResortSolution(text, problem);
+    }
+    entry.solution = parsed;
+    entry.messages.push(userMsg, { role: 'assistant', content: text });
+
+    renderHistory();
+    renderSolution(parsed);
+    renderChat(entry);
+    followUp = true;
+    setFollowUpUI();
+  } catch(err) {
+    renderError(err.message);
+  }
+  setLoading(false);
+}
+solveBtn.addEventListener('click', solve);
+
+function makeHistoryLabel(text) {
+  if (!text) return 'Problem';
+  let out = String(text).trim();
+  out = out.replace(/^Math problem:\s*/i, '');
+  out = out.replace(/^Follow-up question about the same problem:\s*/i, '');
+  out = out.replace(/\n?Respond using the exact required format[\s\S]*$/i, '').trim();
+  return out || 'Problem';
+}
+
+function normalizeProblemText(s) {
+  if (!s) return s;
+  let out = String(s);
+  // Insert explicit multiplication for common adjacency cases.
+  out = out.replace(/\)\s*(\d)/g, ')*$1');
+  out = out.replace(/(\d)\s*\(/g, '$1*(');
+  out = out.replace(/\)\s*([a-zA-Z])/g, ')*$1');
+  return out;
+}
+
+function safeEvalNumber(expr) {
+  const s = String(expr || '').trim();
+  if (!s || !/^[\d\s\+\-\*\/\.\(\)]+$/.test(s)) return null;
+  try {
+    const val = Function(`"use strict"; return (${s});`)();
+    return Number.isFinite(val) ? val : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractNumericCandidates(s) {
+  if (!s) return [];
+  const raw = String(s).replace(/[,]/g, ' ');
+  const out = [];
+
+  // Common math answer formats: "x = 2/3", "2 or -1", "1/2"
+  const rhs = raw.includes('=') ? raw.split('=').slice(-1)[0] : raw;
+  const chunks = rhs.split(/\bor\b|\band\b|;/i).map(x => x.trim()).filter(Boolean);
+  for (const c of chunks) {
+    const m = c.match(/[-+]?(\d+(\.\d+)?)(\s*\/\s*[-+]?\d+(\.\d+)?)?/);
+    if (m) {
+      const asExpr = m[0].replace(/\s+/g, '');
+      const v = safeEvalNumber(asExpr);
+      if (v !== null) out.push(v);
+    }
+    const exprVal = safeEvalNumber(c.replace(/[^\d\+\-\*\/\.\(\)\s]/g, ' '));
+    if (exprVal !== null) out.push(exprVal);
+  }
+
+  if (!out.length) {
+    const nums = raw.match(/[-+]?\d+(\.\d+)?/g) || [];
+    for (const n of nums) {
+      const v = Number(n);
+      if (Number.isFinite(v)) out.push(v);
+    }
+  }
+
+  return out;
+}
+
+function tryEvalSimple(expr) {
+  if (!expr) return null;
+  const s = String(expr).trim();
+  if (!/^[\d\s\+\-\*\/\.\(\)]+$/.test(s)) return null;
+  try {
+    const val = Function(`"use strict"; return (${s});`)();
+    return Number.isFinite(val) ? val : null;
+  } catch {
+    return null;
+  }
+}
+
+function isSaneSolution(parsed, problemText) {
+  if (!Array.isArray(parsed) || !parsed.length) return false;
+  const answerLine = parsed.find(l => l.type === 'answer');
+  if (!answerLine || !answerLine.text || !answerLine.text.trim()) return false;
+  const ans = answerLine.text.trim();
+  if (/^[A-Za-z]$/.test(ans)) return false;
+  if (/^[A-Za-z\s]+$/.test(ans)) return false;
+
+  const steps = parsed.filter(l => l.type === 'step');
+  if (steps.length >= 1) {
+    const lastStep = steps[steps.length - 1].text || '';
+    const stepResultMatch = lastStep.match(/=\s*([^\s].*)$/);
+    if (stepResultMatch) {
+      const stepNums = extractNumericCandidates(stepResultMatch[1]);
+      const ansNums = extractNumericCandidates(ans);
+      if (stepNums.length && ansNums.length) {
+        const overlap = ansNums.some(a => stepNums.some(s => Math.abs(a - s) <= 1e-9));
+        if (!overlap) return false;
+      }
+    }
+  }
+
+  const expected = tryEvalSimple(problemText);
+  if (expected !== null) {
+    const ansNums = extractNumericCandidates(ans);
+    if (ansNums.length) {
+      const hasMatch = ansNums.some(n => Math.abs(expected - n) <= 1e-9);
+      if (!hasMatch) return false;
+    }
+  }
+
+  return true;
+}
+
+function isSimpleArithmetic(expr) {
+  if (!expr) return false;
+  const s = String(expr).trim();
+  return /^[\d\s\+\-\*\/\.\(\)]+$/.test(s);
+}
+
+function buildLocalSolution(modeKey, rawProblem) {
+  const normalized = normalizeProblemText(rawProblem);
+  const expected = tryEvalSimple(normalized);
+  if (expected === null) return null;
+
+  const steps = [];
+  if (normalized !== rawProblem) {
+    steps.push(`Rewrite implicit multiplication: ${rawProblem} = ${normalized}.`);
+  }
+  steps.push(`Evaluate: ${normalized} = ${expected}.`);
+
+  if (steps.length < 2) {
+    steps.unshift(`Simplify the expression: ${normalized}.`);
+  }
+
+  if (modeKey === 'friend') {
+    return [
+      `PROBLEM: Evaluate ${rawProblem}.`,
+      `VIBE: Think of it like combining numbers step by step.`,
+      `STEP 1: ${steps[0]}`,
+      `STEP 2: ${steps[1]}`,
+      `ANSWER: ${expected}!`,
+      `PRO TIP: Write implicit multiplication with a * so it's clear.`
+    ].join('\n');
+  }
+  if (modeKey === 'father') {
+    return [
+      `PROBLEM: Evaluate ${rawProblem}.`,
+      `LIFE CONNECTION: Clear steps make any task easier.`,
+      `STEP 1: ${steps[0]}`,
+      `STEP 2: ${steps[1]}`,
+      `ANSWER: ${expected}.`,
+      `LIFE LESSON: Small steps prevent mistakes.`
+    ].join('\n');
+  }
+  // teacher (default)
+  return [
+    `PROBLEM: Evaluate ${rawProblem}.`,
+    `CONCEPT: Order of operations and multiplication.`,
+    `STEP 1: ${steps[0]}`,
+    `STEP 2: ${steps[1]}`,
+    `ANSWER: ${expected}.`,
+    `INSIGHT: Make implicit multiplication explicit to avoid ambiguity.`
+  ].join('\n');
+}
+
+// -- PARSE --
+function parse(rawText) {
+  const text = String(rawText || '').replace(/\r\n/g, '\n').replace(/\*\*/g, '').replace(/\*/g, '');
+  const out = [];
+  const rows = text.split('\n');
+  let i = 0;
+
+  while (i < rows.length) {
+    const t = rows[i].trim(); i++;
+  if (!t) continue;
+    if (/^\d+$/.test(t)) continue;
+    if (/^Solution\s*-\s*.*Style$/i.test(t)) continue;
+    if (/^\w+\s*\|\s*\w+$/i.test(t)) continue;
+    if (/^[PCAI]$/i.test(t)) continue;
+
+    if (/^(STEP\s*\d+|\d+[\)\].:-])\s*/i.test(t)) {
+      let s = t.replace(/\|+\s*$/, '').trim();
+      let tip = null;
+      const sp = s.split('|||');
+      if (sp.length >= 2) { s = sp[0].trim(); tip = sp.slice(1).join('').trim(); }
+      if (!tip) {
+        let j = i;
+        while (j < rows.length && !rows[j].trim()) j++;
+        if (j < rows.length) {
+          const nx = rows[j].trim();
+          if (nx.startsWith('|||') || /^\([\|]?\s*(why|because|note)/i.test(nx) || /^\|\s*\(/.test(nx)) {
+            tip = nx.replace(/^\|+\s*/,'').replace(/^\([\|]?\s*/,'').replace(/\s*[\|]?\)$/,'').trim();
+            i = j + 1;
+          }
+        }
+      }
+      s = s.replace(/^STEP\s*\d+\s*:\s*/i, '').replace(/^\d+[\)\].:-]\s*/, '').trim();
+      out.push({ type:'step', text:s, tip }); continue;
+    }
+
+    const matchers = [
+      [/^PROBLEM\s*:/i,                         'problem'],
+      [/^(CONCEPT|VIBE|LIFE CONNECTION)\s*:/i,  'concept'],
+      [/^ANSWER\s*:/i,                           'answer'],
+      [/^(FINAL ANSWER|RESULT)\s*:/i,            'answer'],
+      [/^(INSIGHT|PRO TIP|LIFE LESSON)\s*:/i,   'insight'],
+    ];
+    let matched = false;
+    for (const [re, type] of matchers) {
+      if (re.test(t)) {
+        let val = t.replace(re, '').replace(/^\s*:\s*/, '').trim();
+        if (!val) { while (i < rows.length && !rows[i].trim()) i++; val = rows[i]?.trim()||''; i++; }
+        out.push({ type, text:val, tip:null }); matched = true; break;
+      }
+    }
+    if (matched) continue;
+
+    // skip stray pipes / tooltip overflow lines
+    if (/^\|+\s*$/.test(t)) continue;
+    if (/^\|\|\|+\s*:?.*$/.test(t)) continue;
+    if (/^\([\|]?\s*(why|because|note)/i.test(t)) continue;
+    if (/^\|\s*\(/.test(t)) continue;
+
+    out.push({ type:'text', text:t, tip:null });
+  }
+  return out;
+}
+
+// -- DEEP EXPLANATION --
+async function deepExplain(line, container) {
+  if (container._text) { container._open = !container._open; renderDeep(container); return; }
+  container._open = container._loading = true;
+  renderDeep(container);
+  const persona = mode==='teacher'?'formal and educational':mode==='friend'?'casual and fun':'warm and nurturing';
+  try {
+    const sys = { role:'system', content:'You are a helpful math tutor. Be concise - under 120 words.' };
+    const usr = { role:'user', content:`Explain this step more clearly: "${line.text}". Use a ${persona} tone.` };
+    container._text = await callGroq([sys, usr]);
+  } catch(e) { container._text = '! ' + e.message; }
+  container._loading = false;
+  renderDeep(container);
+}
+function renderDeep(c) {
+  let p = c.querySelector('.deep-panel');
+  if (!c._open) { p?.remove(); return; }
+  if (!p) { p = document.createElement('div'); p.className='deep-panel'; c.appendChild(p); }
+  if (c._loading) {
+    p.textContent = '';
+    const s = document.createElement('span');
+    s.className = 'deep-thinking';
+    s.textContent = 'Thinking...';
+    p.appendChild(s);
+  } else {
+    p.textContent = formatMathText(c._text);
+  }
+  c.dataset.open = c._open ? '1' : '0';
+}
+
+// -- RENDER SOLUTION --
+const ICONS = { problem:'P', concept:'C', answer:'A', insight:'I', text:'' };
+function formatMathText(s) {
+  if (!s) return s;
+  let out = s;
+  out = out.replace(/\\\(|\\\)/g, '');
+  out = out.replace(/\\frac\{d\}\{dx\}/g, 'd/dx');
+  out = out.replace(/\\text\s*\{([^}]*)\}/g, '$1');
+  out = out.replace(/\\quad/g, ' ');
+  out = out.replace(/\\;|\\,/g, ' ');
+  out = out.replace(/\\/g, '');
+  out = out.replace(/\s\*\s/g, ' * ');
+  out = out.replace(/x\^0/g, '1');
+  out = out.replace(/x\^1\b/g, 'x');
+  out = out.replace(/x\^2/g, 'x^2');
+  out = out.replace(/x\^3/g, 'x^3');
+  out = out.replace(/x\^4/g, 'x^4');
+  out = out.replace(/x\^5/g, 'x^5');
+  out = out.replace(/x\^6/g, 'x^6');
+  out = out.replace(/x\^7/g, 'x^7');
+  out = out.replace(/x\^8/g, 'x^8');
+  out = out.replace(/x\^9/g, 'x^9');
+  out = out.replace(/x\^n\b/g, 'x^n');
+  out = out.replace(/x\^\(([^)]+)\)/g, 'x^$1');
+  return out;
+}
+function mkLine(line, n) {
+  const wrap = document.createElement('div');
+  wrap.className = 'sline l-' + line.type;
+  const main = document.createElement('div');
+  main.className = 'smain' + (line.type==='step' ? ' click' : '');
+
+  if (line.type === 'step') {
+    const b = document.createElement('div'); b.className='sbadge'; b.textContent=n; main.appendChild(b);
+  } else if (ICONS[line.type]) {
+    const ic = document.createElement('div'); ic.className='sicon'; ic.textContent=ICONS[line.type]; main.appendChild(ic);
+  } else {
+    const sp = document.createElement('div'); sp.style.cssText='width:22px;flex-shrink:0'; main.appendChild(sp);
+  }
+
+  const cnt = document.createElement('div'); cnt.className='scontent';
+  const tx  = document.createElement('div'); tx.className='stext'; tx.textContent=formatMathText(line.text); cnt.appendChild(tx);
+  if (line.tip) {
+    const tip = document.createElement('div'); tip.className='stip'; tip.textContent='Tip: '+formatMathText(line.tip); cnt.appendChild(tip);
+  }
+  main.appendChild(cnt);
+
+  if (line.type === 'step') {
+    const ex = document.createElement('span'); ex.className='sexpand'; main.appendChild(ex);
+    main.addEventListener('click', () => deepExplain(line, wrap));
+  }
+  wrap.dataset.open = '0';
+  wrap.appendChild(main);
+  return wrap;
+}
+
+function renderSolution(parsed) {
+  const m    = MODES[mode];
+  const modelLabel = model ? model.split(':')[0] : 'no-model';
+  const caps = { brief: 3, standard: 6, deep: 999 };
+  const maxSteps = caps[detail] ?? 6;
+  let stepCount = 0;
+  const display = parsed.filter(l => {
+    if (l.type === 'step') {
+      stepCount += 1;
+      return stepCount <= maxSteps;
+    }
+    return true;
+  });
+  const card = document.createElement('div'); card.className='sol-card';
+  const head = document.createElement('div'); head.className='sol-head';
+  head.innerHTML = `
+    <div class="sol-head-l"><span class="hist-badge">${m.badge}</span><span>Solution - <span class="sol-badge">${m.label} Style</span></span></div>
+    <span class="detail-tag">${modelLabel} | ${detail}</span>`;
+  card.appendChild(head);
+  const body = document.createElement('div'); body.className='sol-body';
+  let n = 0;
+  for (const l of display) { if (l.type==='step') n++; body.appendChild(mkLine(l, n)); }
+  card.appendChild(body);
+  const foot = document.createElement('div'); foot.className='sol-footer';
+  foot.textContent = 'Click any numbered step for a deeper explanation. Try switching modes.';
+  solArea.innerHTML = '';
+  solArea.appendChild(card);
+  solArea.appendChild(foot);
+}
+
+function renderError(msg) {
+  solArea.innerHTML = '';
+  const card = document.createElement('div');
+  card.className = 'sol-card';
+  card.style.padding = '18px';
+  const t = document.createElement('div');
+  t.style.cssText = 'color:#dc2626;font-family:var(--fm);font-size:13px';
+  t.textContent = 'Error: ' + msg;
+  card.appendChild(t);
+  solArea.appendChild(card);
+}
+function clearSol() {
+  solArea.innerHTML = `<div class="empty"><div class="empty-glyph">M</div><p>Solving...</p></div>`;
+}
+function renderEmptyState() {
+  solArea.innerHTML = `
+    <div class="empty">
+      <div class="empty-glyph">M</div>
+      <p>Enter a problem or drop an image to get started</p>
+      <small>algebra - calculus - geometry - trigonometry - statistics</small>
+    </div>`;
+}
+function setLoading(on) {
+  if (on) { solveTxt.innerHTML='<div class="spinner"></div> Solving...'; solveBtn.disabled=true; }
+  else    { solveTxt.textContent='Solve'; updateBtn(); }
+}
+
+// -- HISTORY --
+function renderHistory() {
+  if (!history.length) { histSec.style.display='none'; return; }
+  histSec.style.display = 'flex';
+  histList.innerHTML = '';
+  for (const h of history) {
+    const b = document.createElement('button');
+    b.className = 'history-item' + (h.id===activeId ? ' active' : '');
+    b.innerHTML = `<span class="hist-badge">${MODES[h.mode].badge}</span><span>${h.problem}</span>`;
+    b.addEventListener('click', () => {
+      activeId=h.id; detail=h.detail;
+      setMode(h.mode, { clear: false });
+      document.querySelectorAll('.detail-btn').forEach(x=>x.classList.toggle('active',x.dataset.detail===h.detail));
+      renderSolution(h.solution); renderHistory(); renderChat(h);
+      followUp = true; setFollowUpUI();
+    });
+    histList.appendChild(b);
+  }
+}
+
+// -- INIT --
+applyTheme();
+setMode(mode, { clear: false });
+solveTxt.textContent = 'Solve';
+renderChat(null);
+loadModels();
+</script>
+</body>
+</html>
+
+
+

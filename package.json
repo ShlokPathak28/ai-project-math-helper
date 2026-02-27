@@ -1,0 +1,18 @@
+{
+  "name": "math-solver-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local math solver server with Groq Cloud API",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --trace-warnings --trace-uncaught server.js",
+    "debug": "node --inspect --trace-warnings --trace-uncaught server.js"
+  },
+  "dependencies": {
+    "tesseract.js": "^7.0.0"
+  }
+}
