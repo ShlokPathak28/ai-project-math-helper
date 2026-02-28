@@ -1,10 +1,10 @@
-# Math Solver AI (Groq + OCR)
+# Math Solver AI (Groq Vision)
 
 A local, single-page math tutoring app with:
 - A custom Node.js HTTP server (`server.js`)
 - A rich browser UI (`math-solver.html`)
 - Groq Chat Completions as the LLM backend
-- Optional OCR via `tesseract.js` for image-based problems
+- Vision-model image solving (no OCR pipeline)
 
 The app can solve typed or image-based math problems, render structured step-by-step solutions, and support follow-up chat in multiple teaching styles.
 
@@ -19,7 +19,7 @@ The app can solve typed or image-based math problems, render structured step-by-
   - `standard` (4-6 steps)
   - `deep` (8-12+ steps)
 - Image upload + drag/drop + clipboard paste
-- OCR extraction pipeline (`/api/ocr`) with graceful fallback if OCR is unavailable
+- Image upload solved directly by vision-capable models
 - Groq model discovery (`/api/models`) with hardcoded fallback model list
 - Follow-up chat per problem
 - Clickable steps for "deep explain" expansion
@@ -30,14 +30,13 @@ The app can solve typed or image-based math problems, render structured step-by-
 
 - Node.js (CommonJS)
 - Built-in `http` and `https` modules (no Express)
-- `tesseract.js` for OCR
 - Plain HTML/CSS/JS frontend (single file)
 
 ## Project Structure
 
 ```text
 .
-|- server.js            # Backend server + Groq proxy + OCR endpoint + static serving
+|- server.js            # Backend server + Groq proxy + static serving
 |- math-solver.html     # Full frontend UI and client logic
 |- package.json
 |- .env                 # Local env vars (not for commit)
@@ -141,36 +140,8 @@ Response:
 ```
 
 Notes:
-- Client may send `images` array in a message; backend converts this to a text note because chat call is text-only.
+- Client may send an `images` array in a message; backend forwards multimodal blocks to Groq.
 - Max request body size: `20,000,000` bytes.
-
-### `POST /api/ocr`
-
-Runs OCR on base64 image payload.
-
-Request body:
-```json
-{
-  "image": "<base64-no-data-url-prefix>"
-}
-```
-
-Response (success):
-```json
-{
-  "text": "Extracted text..."
-}
-```
-
-Response (OCR library unavailable):
-```json
-{
-  "text": null,
-  "error": "tesseract_not_installed"
-}
-```
-
-Max request body size: `6,000,000` bytes.
 
 ## Frontend Behavior
 
@@ -190,7 +161,6 @@ When user clicks **Solve**:
 
 1. Build problem text using priority:
    - typed input
-   - OCR text (if image OCR succeeded)
    - fallback image description prompt
 2. Build system prompt from selected mode + detail level + notation rules.
 3. If simple arithmetic and no image/follow-up, compute locally (`buildLocalSolution`).
@@ -225,9 +195,8 @@ When user clicks **Solve**:
   - ensure `.env` contains a valid `GROQ_API_KEY`
 - Port already in use:
   - change `PORT` in `.env`, or free the existing process
-- OCR not working:
-  - verify `tesseract.js` is installed (`npm install`)
-  - app still works without OCR by solving typed text or fallback image prompt
+- Image not solving:
+  - ensure a vision-capable model is selected (for example, Maverick/Scout)
 
 ## License
 

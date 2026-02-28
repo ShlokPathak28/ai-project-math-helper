@@ -27,7 +27,7 @@
   --accent:#f59e0b;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--fb);height:100vh;overflow:hidden;transition:background var(--t),color var(--t);font-size:15px}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);height:100vh;min-height:100dvh;overflow:hidden;transition:background var(--t),color var(--t);font-size:15px}
 body::before{
   content:'';
   position:fixed;inset:-20vmax;
@@ -40,7 +40,7 @@ body::before{
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 a{color:var(--ma)}
 
-.app{display:flex;height:100vh;position:relative;z-index:1}
+.app{display:flex;height:100vh;min-height:100dvh;position:relative;z-index:1}
 
 /* -- Sidebar -- */
 .sidebar{width:255px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:background var(--t),border-color var(--t),width var(--t),transform var(--t);overflow:hidden}
@@ -111,8 +111,24 @@ body.sb-open .backdrop{opacity:1;pointer-events:auto}
   body.sb-collapsed .sb-inner,body.sb-collapsed .sb-footer{opacity:1;pointer-events:auto}
   .mode-top-select{display:block}
   .theme-top{display:inline-flex}
-  .topbar{flex-wrap:wrap}
+  .main{min-height:0}
+  .topbar{
+    flex-wrap:wrap;
+    align-items:flex-start;
+    padding:calc(12px + env(safe-area-inset-top)) 12px 10px;
+    gap:8px;
+  }
+  .topbar-left{
+    width:100%;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+  }
+  .mode-pill{display:none}
+  .mode-top-select{flex:1;min-width:120px}
+  .theme-top{height:32px}
   .topbar-hint{font-size:11px;margin-left:0;margin-top:6px;width:100%}
+  .scroll{padding:14px}
 }
 .mode-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--ma-bg);border:1px solid var(--ma-bd);font-size:12px;font-weight:600;color:var(--ma);transition:all var(--t)}
 .topbar-hint{font-size:12px;color:var(--text3);font-family:var(--fm);margin-left:12px}
@@ -137,12 +153,6 @@ body.sb-open .backdrop{opacity:1;pointer-events:auto}
 .rm-btn{position:absolute;top:7px;right:7px;padding:4px 10px;background:rgba(0,0,0,.55);border:none;border-radius:6px;color:#fff;font-size:11px;cursor:pointer;backdrop-filter:blur(4px);transition:background var(--t)}
 .rm-btn:hover{background:rgba(0,0,0,.8)}
 
-/* OCR status */
-.ocr-bar{display:none;align-items:center;gap:8px;margin-top:9px;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:var(--fm);color:var(--text2)}
-.ocr-bar.show{display:flex}
-.ocr-done{margin-top:9px;padding:8px 12px;background:var(--ma-bg);border:1px solid var(--ma-bd);border-radius:8px;font-size:12px;font-family:var(--fm);color:var(--ma);display:none}
-.ocr-done.show{display:block}
-
 .solve-row{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:13px}
 .hint{font-size:11px;color:var(--text3);font-family:var(--fm)}
 .solve-btn{padding:9px 24px;background:var(--ma);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;font-family:var(--fb);cursor:pointer;display:flex;align-items:center;gap:7px;transition:all var(--t)}
@@ -159,32 +169,39 @@ body.sb-open .backdrop{opacity:1;pointer-events:auto}
 .sol-head-l{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--text2)}
 .sol-badge{font-size:12px;font-weight:700;color:var(--ma);transition:color var(--t)}
 .detail-tag{font-size:11px;font-family:var(--fm);color:var(--text3);padding:2px 7px;border-radius:4px;background:var(--bg3);border:1px solid var(--border)}
-.sol-body{padding:18px;display:flex;flex-direction:column;gap:5px}
+.sol-body{padding:24px;display:flex;flex-direction:column;gap:10px}
 
 /* step lines */
 .sline{border-radius:7px;overflow:hidden}
-.smain{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;transition:background var(--t)}
+.smain{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;transition:background var(--t)}
 .smain.click{cursor:pointer}
 .smain.click:hover{background:var(--bg2)}
 .sbadge{width:22px;height:22px;border-radius:50%;background:var(--ma);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background var(--t)}
 .sicon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;margin-top:1px;background:var(--bg3);border:1px solid var(--border);border-radius:50%;color:var(--text2)}
 .scontent{flex:1;min-width:0}
-.stext{font-family:var(--fm);font-size:14px;color:var(--text);line-height:1.65}
-.stip{font-size:12px;color:var(--text3);font-style:italic;margin-top:3px;font-family:var(--fb)}
+.stext{font-family:"Cambria Math","STIX Two Math","Times New Roman",serif;font-size:16px;color:var(--text);line-height:1.8;letter-spacing:.01em}
+.stext sup{font-size:.82em;line-height:0;vertical-align:super}
+.stip{font-size:13px;color:var(--text3);font-style:italic;margin-top:6px;font-family:var(--fb);line-height:1.65}
+.math-frac{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;vertical-align:middle;margin:0 .12em;line-height:1}
+.math-frac .num,.math-frac .den{font-size:.98em;padding:0 .2em}
+.math-frac .bar{width:100%;min-width:1.35em;border-top:1px solid currentColor;margin:.1em 0}
+.math-tip-label{font-weight:600}
+.eq-line{display:block;margin:.18em 0 .08em .08em;font-size:1.08em}
+.eq-cont{display:block;margin:.03em 0 .03em 1em;font-size:1.08em}
 .sexpand{font-size:11px;color:var(--ma);flex-shrink:0;opacity:.7;align-self:center;font-family:var(--fm);white-space:nowrap;user-select:none}
 .sline[data-open="1"] .sexpand::after{content:'less'}
 .sline[data-open="0"] .sexpand::after{content:'explain'}
 
 .l-problem{background:var(--bg2);border:1px solid var(--border)}
-.l-problem .stext{color:var(--text2);font-size:12px}
+.l-problem .stext{color:var(--text2);font-size:14px}
 .l-concept{background:var(--ma-bg);border:1px solid var(--ma-bd)}
 .l-step{border:1px solid var(--border)}
 .l-answer{background:var(--ma-bg);border:2px solid var(--ma)}
-.l-answer .stext{color:var(--ma);font-size:15px;font-weight:500}
+.l-answer .stext{color:var(--ma);font-size:18px;font-weight:600}
 .l-insight{border:1px dashed var(--border2)}
-.l-insight .stext{font-family:var(--fb);font-size:13px;font-style:italic;color:var(--text2)}
+.l-insight .stext{font-family:var(--fb);font-size:14px;font-style:italic;color:var(--text2)}
 
-.deep-panel{margin:0 0 0 31px;padding:11px 13px;background:var(--ma-bg);border-left:3px solid var(--ma);border-radius:0 6px 6px 0;animation:fadeIn .2s ease;font-size:14px;color:var(--text2);line-height:1.7;font-family:var(--fb);white-space:pre-wrap}
+.deep-panel{margin:0 0 0 31px;padding:11px 13px;background:var(--ma-bg);border-left:3px solid var(--ma);border-radius:0 6px 6px 0;animation:fadeIn .2s ease;font-size:15px;color:var(--text2);line-height:1.72;font-family:"Cambria Math","STIX Two Math","Times New Roman",serif}
 .deep-thinking{color:var(--ma);font-family:var(--fm);font-size:12px;animation:pulse 1.2s ease-in-out infinite}
 
 .sol-footer{padding:11px 15px;background:var(--surface2);border-radius:7px;font-size:12px;color:var(--text3);text-align:center;font-family:var(--fm);border:1px solid var(--border)}
@@ -192,7 +209,7 @@ body.sb-open .backdrop{opacity:1;pointer-events:auto}
 .chat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;min-height:360px}
 .chat-head{padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text3);font-family:var(--fm);background:var(--surface2)}
 .chat-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
-.chat-msg{max-width:85%;padding:10px 12px;border-radius:10px;font-size:14px;line-height:1.5}
+.chat-msg{max-width:85%;padding:12px 14px;border-radius:10px;font-size:15px;line-height:1.65}
 .chat-msg.user{align-self:flex-end;background:var(--ma);color:#fff}
 .chat-msg.ai{align-self:flex-start;background:var(--bg2);color:var(--text);cursor:pointer}
 .chat-msg.ai:hover{background:var(--surface2)}
@@ -291,14 +308,6 @@ body.sb-open .backdrop{opacity:1;pointer-events:auto}
         </div>
         <input type="file" accept="image/*" id="fileInput" style="display:none"/>
 
-        <!-- OCR status bar -->
-        <div class="ocr-bar" id="ocrBar">
-          <div class="spinner" style="border-color:rgba(0,0,0,.15);border-top-color:var(--ma)"></div>
-          <span id="ocrMsg">Reading image...</span>
-        </div>
-        <!-- OCR result badge (shown when OCR succeeds) -->
-        <div class="ocr-done" id="ocrDone"></div>
-
         <div class="solve-row">
           <span class="hint">Ctrl+Enter to solve</span>
           <button class="mini-btn" id="followBtn" title="Ask a follow-up about the same solution">Follow-up</button>
@@ -385,12 +394,14 @@ let detail = 'standard';
 let dark   = false;
 let model  = '';
 let imgData = null; // base64 string (no prefix)
+let imgMime = 'image/png';
 let imgUrl  = null;
-let ocrText = '';   // text extracted from image via server OCR
 let history = [];
 let activeId = null;
-const ENABLE_OCR = true;
 let followUp = false;
+let preferredModel = '';
+const APP_STATE_KEY = 'math-solver-state-v1';
+let persistTimer = null;
 
 function newId() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -420,11 +431,86 @@ const pill        = document.getElementById('pill');
 const themeLabel  = document.getElementById('themeLabel');
 const histSec     = document.getElementById('histSec');
 const histList    = document.getElementById('histList');
-const ocrBar      = document.getElementById('ocrBar');
-const ocrMsg      = document.getElementById('ocrMsg');
-const ocrDone     = document.getElementById('ocrDone');
 const chatCard    = document.getElementById('chatCard');
 const chatBody    = document.getElementById('chatBody');
+
+function clampText(v, max = 4000) {
+  return String(v || '').slice(0, max);
+}
+
+function sanitizeHistoryForStore(items) {
+  if (!Array.isArray(items)) return [];
+  const out = [];
+  for (const h of items.slice(0, 10)) {
+    if (!h || typeof h !== 'object') continue;
+    const entry = {
+      id: clampText(h.id, 80),
+      problem: clampText(h.problem, 180),
+      mode: MODES[h.mode] ? h.mode : 'teacher',
+      detail: DETAIL[h.detail] ? h.detail : 'standard',
+      solution: [],
+      messages: [],
+    };
+    if (Array.isArray(h.solution)) {
+      entry.solution = h.solution.slice(0, 80).map((l) => ({
+        type: clampText(l?.type, 20),
+        text: clampText(l?.text, 3000),
+        tip: l?.tip ? clampText(l.tip, 1000) : null,
+      }));
+    }
+    if (Array.isArray(h.messages)) {
+      entry.messages = h.messages.slice(-40).map((m) => ({
+        role: m?.role === 'assistant' ? 'assistant' : 'user',
+        content: clampText(m?.content, 6000),
+      }));
+    }
+    if (!entry.id) entry.id = newId();
+    out.push(entry);
+  }
+  return out;
+}
+
+function saveAppState() {
+  try {
+    const safeHistory = sanitizeHistoryForStore(history);
+    const activeExists = safeHistory.some(h => h.id === activeId);
+    const state = {
+      mode: MODES[mode] ? mode : 'teacher',
+      detail: DETAIL[detail] ? detail : 'standard',
+      dark: !!dark,
+      model: clampText(preferredModel || model, 160),
+      followUp: !!followUp,
+      activeId: activeExists ? activeId : (safeHistory[0]?.id || null),
+      draft: clampText(probInput?.value || '', 4000),
+      history: safeHistory,
+    };
+    localStorage.setItem(APP_STATE_KEY, JSON.stringify(state));
+  } catch {}
+}
+
+function scheduleSaveAppState() {
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(saveAppState, 120);
+}
+
+function loadAppState() {
+  try {
+    const raw = localStorage.getItem(APP_STATE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (MODES[parsed?.mode]) mode = parsed.mode;
+    if (DETAIL[parsed?.detail]) detail = parsed.detail;
+    dark = !!parsed?.dark;
+    followUp = !!parsed?.followUp;
+    preferredModel = clampText(parsed?.model, 160);
+    if (preferredModel) model = preferredModel;
+    history = sanitizeHistoryForStore(parsed?.history);
+    activeId = typeof parsed?.activeId === 'string' ? parsed.activeId : null;
+    if (!history.some(h => h.id === activeId)) activeId = history[0]?.id || null;
+    if (probInput) probInput.value = clampText(parsed?.draft || '', 4000);
+  } catch {}
+}
+window.addEventListener('beforeunload', saveAppState);
 
 // -- COLORS / THEME --
 function applyColors() {
@@ -440,9 +526,9 @@ function applyTheme() {
   themeLabel.textContent = dark ? 'Dark' : 'Light';
   applyColors();
 }
-themeBtn.addEventListener('click', () => { dark = !dark; applyTheme(); });
+themeBtn.addEventListener('click', () => { dark = !dark; applyTheme(); scheduleSaveAppState(); });
 if (themeTop) {
-  themeTop.addEventListener('click', () => { dark = !dark; applyTheme(); });
+  themeTop.addEventListener('click', () => { dark = !dark; applyTheme(); scheduleSaveAppState(); });
 }
 
 // ---- SIDEBAR ----
@@ -497,9 +583,18 @@ async function loadModels() {
       modelStatus.className = 'model-status err';
     } else {
       setModelOptions(list);
-      model = list[0]?.name || '';
+      const desired = preferredModel || model;
+      if (desired && list.some(m => m?.name === desired)) {
+        model = desired;
+      } else {
+        model = list[0]?.name || '';
+      }
+      modelSelect.value = model;
+      if (imgData) autoSelectVisionModel();
+      preferredModel = model;
       modelStatus.textContent = `OK ${list.length} model${list.length > 1 ? 's' : ''} ready`;
       modelStatus.className = 'model-status ok';
+      scheduleSaveAppState();
     }
   } catch {
     setModelOptions([], 'Cannot reach Groq');
@@ -508,7 +603,12 @@ async function loadModels() {
   }
   updateBtn();
 }
-modelSelect.addEventListener('change', () => { model = modelSelect.value; updateBtn(); });
+modelSelect.addEventListener('change', () => {
+  model = modelSelect.value;
+  preferredModel = model;
+  updateBtn();
+  scheduleSaveAppState();
+});
 
 function setModelOptions(models, fallbackLabel = '') {
   modelSelect.innerHTML = '';
@@ -530,15 +630,51 @@ function setModelOptions(models, fallbackLabel = '') {
 }
 refreshBtn.addEventListener('click', loadModels);
 
+function isVisionModelName(name) {
+  const s = String(name || '').toLowerCase();
+  if (!s) return false;
+  return /maverick|scout|vision|vl|llama-4/.test(s);
+}
+
+function autoSelectVisionModel() {
+  const options = Array.from(modelSelect.options).map(o => o.value).filter(Boolean);
+  if (!options.length) return false;
+  const current = String(model || '');
+  if (isVisionModelName(current)) return true;
+
+  const pick = options.find(n => /maverick/i.test(n))
+    || options.find(n => /scout/i.test(n))
+    || options.find(n => isVisionModelName(n));
+  if (!pick) return false;
+
+  model = pick;
+  preferredModel = pick;
+  modelSelect.value = pick;
+  modelStatus.textContent = `Using vision model: ${pick}`;
+  modelStatus.className = 'model-status ok';
+  scheduleSaveAppState();
+  return true;
+}
+
 // -- MODES --
 function setMode(newMode, opts = {}) {
-  const { clear = true } = opts;
+  const { clear = true, persist = true } = opts;
+  if (!MODES[newMode]) return;
   mode = newMode;
   document.querySelectorAll('.mode-btn').forEach(x => x.classList.toggle('active', x.dataset.mode === newMode));
   modePill.textContent = MODES[mode].label + ' Mode';
   if (modeTop) modeTop.value = newMode;
   applyColors();
   if (clear) clearSol();
+  if (persist) scheduleSaveAppState();
+}
+
+function setDetail(newDetail, opts = {}) {
+  const { persist = true } = opts;
+  if (!DETAIL[newDetail]) return;
+  detail = newDetail;
+  document.querySelectorAll('.detail-btn').forEach(x => x.classList.toggle('active', x.dataset.detail === newDetail));
+  if (persist) scheduleSaveAppState();
 }
 document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', () => {
   setMode(b.dataset.mode, { clear: true });
@@ -551,12 +687,10 @@ if (modeTop) {
 
 // -- DETAIL --
 document.querySelectorAll('.detail-btn').forEach(b => b.addEventListener('click', () => {
-  detail = b.dataset.detail;
-  document.querySelectorAll('.detail-btn').forEach(x => x.classList.remove('active'));
-  b.classList.add('active');
+  setDetail(b.dataset.detail);
 }));
 
-// -- IMAGE UPLOAD + OCR --
+// -- IMAGE UPLOAD --
 drop.addEventListener('click', () => { if (!imgUrl) fileInput.click(); });
 drop.addEventListener('dragover',  e => { e.preventDefault(); drop.classList.add('over'); });
 drop.addEventListener('dragleave', () => drop.classList.remove('over'));
@@ -589,54 +723,27 @@ function loadImg(file) {
   if (imgUrl) URL.revokeObjectURL(imgUrl);
   imgUrl  = URL.createObjectURL(file);
   imgData = null;
-  ocrText = '';
-  ocrDone.className = 'ocr-done';
+  imgMime = file?.type || 'image/png';
 
   const reader = new FileReader();
   reader.onload = async () => {
     imgData = reader.result.split(',')[1]; // base64 without prefix
+    autoSelectVisionModel();
     renderDrop();
     updateBtn();
-    if (ENABLE_OCR) await tryOCR();
+    scheduleSaveAppState();
   };
   reader.readAsDataURL(file);
-}
-
-async function tryOCR() {
-  // Ask the server to OCR the image (works if npm install tesseract.js was run)
-  ocrBar.className = 'ocr-bar show';
-  ocrMsg.textContent = 'Reading image with OCR...';
-  try {
-    const res  = await fetch('/api/ocr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: imgData })
-    });
-    const data = await res.json();
-    ocrBar.className = 'ocr-bar';
-
-    if (data.text) {
-      ocrText = data.text;
-      ocrDone.textContent  = 'OCR extracted: ' + ocrText.slice(0, 80) + (ocrText.length > 80 ? '...' : '');
-      ocrDone.className    = 'ocr-done show';
-      updateBtn();
-    }
-    // If data.error === 'tesseract_not_installed' we just silently continue -
-    // solve() will describe the image as text to the model instead
-  } catch {
-    ocrBar.className = 'ocr-bar'; // hide on error, no noise
-  }
 }
 
 function rmImg(e) {
   e.stopPropagation();
   if (imgUrl) URL.revokeObjectURL(imgUrl);
-  imgData = imgUrl = null; ocrText = '';
+  imgData = imgUrl = null; imgMime = 'image/png';
   fileInput.value = '';
-  ocrBar.className = 'ocr-bar';
-  ocrDone.className = 'ocr-done';
   followUp = false; setFollowUpUI();
   renderDrop(); updateBtn();
+  scheduleSaveAppState();
 }
 
 function renderDrop() {
@@ -660,20 +767,30 @@ function renderDrop() {
 
 // -- SOLVE BUTTON --
 probInput.addEventListener('input', updateBtn);
+probInput.addEventListener('input', scheduleSaveAppState);
 probInput.addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') solve(); });
 followBtn.addEventListener('click', () => { followUp = !followUp; setFollowUpUI(); });
 newBtn.addEventListener('click', () => { startNewProblem(); });
 function setFollowUpUI() {
   followBtn.classList.toggle('active', followUp);
+  scheduleSaveAppState();
 }
 function startNewProblem() {
   followUp = false;
   activeId = null;
-  history = [];
+  probInput.value = '';
+  if (imgUrl) URL.revokeObjectURL(imgUrl);
+  imgData = null;
+  imgMime = 'image/png';
+  imgUrl = null;
+  fileInput.value = '';
+  renderDrop();
   renderHistory();
   renderEmptyState();
   setFollowUpUI();
-  chatBody.innerHTML = '';
+  renderChat(null);
+  updateBtn();
+  scheduleSaveAppState();
 }
 function updateBtn() {
   solveBtn.disabled = !(model && (probInput.value.trim() || imgData));
@@ -702,7 +819,7 @@ function cleanPromptForDisplay(text) {
 function addChatMessage(role, text, onSelect) {
   const m = document.createElement('div');
   m.className = 'chat-msg ' + (role === 'user' ? 'user' : 'ai');
-  m.textContent = formatMathText(role === 'user' ? cleanPromptForDisplay(text) : text);
+  m.innerHTML = formatMathHtml(role === 'user' ? cleanPromptForDisplay(text) : text);
   if (role === 'assistant' && typeof onSelect === 'function') {
     m.addEventListener('click', () => {
       document.querySelectorAll('.chat-msg.selected').forEach(x => x.classList.remove('selected'));
@@ -729,7 +846,21 @@ function renderChat(entry) {
       addChatMessage(msg.role, msg.content);
     } else if (msg.role === 'assistant') {
       addChatMessage(msg.role, msg.content, () => {
-        const parsed = parse(msg.content || '');
+        const raw = msg.content || '';
+        let parsed = parse(raw);
+        const hasStep = parsed.some(l => l.type === 'step');
+        const usable = isUsableParsedSolution(parsed, { requireAnswer: false });
+        if (!usable || !hasStep) {
+          const problemText = entry?.problem || 'Math problem';
+          parsed = coerceParsedSolution(raw, problemText, entry?.mode || mode, {
+            conceptual: isConceptualProblem(problemText)
+          });
+        }
+        if (!isUsableParsedSolution(parsed, { requireAnswer: false })) {
+          parsed = Array.isArray(entry?.solution) && entry.solution.length
+            ? entry.solution
+            : buildLastResortSolution(raw, entry?.problem || 'Math problem');
+        }
         renderSolution(parsed);
         if (typeof solArea.scrollIntoView === 'function') {
           solArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -750,6 +881,53 @@ function stripThinkingBlocks(input) {
   out = out.replace(/<\s*analysis\b[^>]*>[\s\S]*?<\s*\/\s*analysis\s*>/gi, '');
   out = out.replace(/<\s*\/?\s*think\b[^>]*>/gi, '');
   out = out.replace(/<\s*\/?\s*analysis\b[^>]*>/gi, '');
+  return out.trim();
+}
+
+function normalizeCompactMathPieces(input) {
+  let t = String(input || '');
+  t = t.replace(/\s+/g, ' ').trim();
+  // xsqrt(x) or x2sqrt(x) -> x*sqrt(x), x^2*sqrt(x)
+  t = t.replace(/([A-Za-z])(\d+)\s*sqrt\(/g, '$1^$2*sqrt(');
+  t = t.replace(/([A-Za-z0-9\)])\s*sqrt\(/g, '$1*sqrt(');
+  // x- 3 2 -> x^(-3/2), x 5 2 -> x^(5/2)
+  t = t.replace(/([A-Za-z])\s*-\s*(\d+)\s+(\d+)\b/g, '$1^(-($2)/($3))');
+  t = t.replace(/([A-Za-z])\s+(\d+)\s+(\d+)\b/g, '$1^(($2)/($3))');
+  return t;
+}
+
+function normalizeModelMathText(input) {
+  let out = stripThinkingBlocks(input).replace(/\r\n/g, '\n');
+  out = out.replace(/\*\*([^*]+)\*\*/g, '$1');
+  out = out.replace(/__([^_]+)__/g, '$1');
+  // Flatten newlines inside simple brace groups so frac blocks don't break across lines.
+  out = out.replace(/\{([^{}]*)\}/gs, (_m, inner) => `{${String(inner).replace(/\s*\n\s*/g, ' ').trim()}}`);
+  out = out.replace(/\$\$?/g, '');
+  out = out.replace(/\\left|\\right/g, '');
+  out = out.replace(/\\cdot/g, ' * ');
+  out = out.replace(/\\times/g, ' * ');
+  out = out.replace(/\\div/g, ' / ');
+  out = out.replace(/\\pm/g, ' ± ');
+  out = out.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '($1)/($2)');
+  out = out.replace(/\bfrac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '($1)/($2)');
+  out = out.replace(/\\sqrt\s*\{([^{}]+)\}/g, 'sqrt($1)');
+  out = out.replace(/\bsqrt\s*\{([^{}]+)\}/g, 'sqrt($1)');
+  out = out.replace(/\^\{([^{}]+)\}/g, '^($1)');
+  out = out.replace(/\\text\s*\{([^}]*)\}/g, '$1');
+  out = out.replace(/\\quad/g, ' ');
+  out = out.replace(/\\;|\\,/g, ' ');
+  out = out.replace(/\\+/g, '');
+  // Fix broken line-wrapped exponents seen in some model outputs: x-\n3\n2 -> x^(-(3)/(2))
+  out = out.replace(/([A-Za-z0-9\)])\s*-\s*\n\s*(\d+)\s*\n\s*(\d+)/g, '$1^(-($2)/($3))');
+  // Also fix positive wrapped exponents: x\n5\n2 -> x^((5)/(2))
+  out = out.replace(/([A-Za-z0-9\)])\s*\n\s*(\d+)\s*\n\s*(\d+)/g, '$1^(($2)/($3))');
+  // Fix compact denominator artifacts: (6)/(x 5 2) or (6)/(x2sqrt(x))
+  out = out.replace(/\(\s*([^()]+)\s*\)\s*\/\s*\(\s*([^()]+)\s*\)/g, (_m, num, den) => {
+    const nn = normalizeCompactMathPieces(num);
+    const dd = normalizeCompactMathPieces(den);
+    return `(${nn})/(${dd})`;
+  });
+  out = normalizeCompactMathPieces(out);
   return out.trim();
 }
 
@@ -888,9 +1066,9 @@ function coerceParsedSolution(rawText, problemText, modeKey, opts = {}) {
   ];
   const picks = stepLines.filter(Boolean).slice(0, conceptual ? 10 : 8);
   if (picks.length) {
-    for (const s of picks) out.push({ type: conceptual ? 'text' : 'step', text: s, tip: null });
+    for (const s of picks) out.push({ type: 'step', text: s, tip: null });
   } else {
-    out.push({ type: conceptual ? 'text' : 'step', text: 'No structured steps found; showing raw explanation.', tip: null });
+    out.push({ type: 'step', text: 'No structured steps found; showing raw explanation.', tip: null });
   }
   if (!conceptual) out.push({ type: 'answer', text: answer, tip: null });
   out.push({ type: 'insight', text: insightByMode, tip: null });
@@ -929,10 +1107,9 @@ async function solve(opts = {}) {
   const typed = probInput.value.trim();
 
   // Build the problem description to send to the model:
-  // Priority: typed text > OCR text > image description fallback
+  // Priority: typed text > image description fallback
   let problem;
   if (typed)                 problem = typed;
-  else if (ENABLE_OCR && ocrText) problem = ocrText;
   else if (imgData)          problem = 'Solve the math problem shown in the attached image. Describe what you see and solve it step by step.';
   else return;
 
@@ -943,8 +1120,9 @@ async function solve(opts = {}) {
     '\n\nMath notation rule: treat adjacent parentheses/numbers/variables as multiplication (e.g., (2+1)0 = (2+1)*0, 2(3+4)=2*(3+4)). Do not rewrite the problem into a different expression.';
 
   try {
-    const images = imgData ? [imgData] : null;
-    const labelSource = typed || ocrText || 'Image problem';
+    if (imgData) autoSelectVisionModel();
+    const images = imgData ? [{ data: imgData, mime: imgMime || 'image/png' }] : null;
+    const labelSource = typed || 'Image problem';
     const label = makeHistoryLabel(labelSource);
     const sysMsg = { role: 'system', content: sys };
     let entry = activeId ? history.find(h => h.id === activeId) : null;
@@ -1016,6 +1194,7 @@ async function solve(opts = {}) {
     renderChat(entry);
     followUp = true;
     setFollowUpUI();
+    scheduleSaveAppState();
   } catch(err) {
     renderError(err.message);
   }
@@ -1183,7 +1362,7 @@ function buildLocalSolution(modeKey, rawProblem) {
 
 // -- PARSE --
 function parse(rawText) {
-  const text = stripThinkingBlocks(rawText).replace(/\r\n/g, '\n').replace(/\*\*/g, '').replace(/\*/g, '');
+  const text = normalizeModelMathText(rawText).replace(/\*\*/g, '').replace(/\*/g, '');
   const out = [];
   const rows = text.split('\n');
   let i = 0;
@@ -1269,36 +1448,93 @@ function renderDeep(c) {
     s.textContent = 'Thinking...';
     p.appendChild(s);
   } else {
-    p.textContent = formatMathText(c._text);
+    p.innerHTML = formatMathHtml(c._text);
   }
   c.dataset.open = c._open ? '1' : '0';
 }
 
 // -- RENDER SOLUTION --
 const ICONS = { problem:'P', concept:'C', answer:'A', insight:'I', text:'' };
-function formatMathText(s) {
-  if (!s) return s;
-  let out = stripThinkingBlocks(s);
-  out = out.replace(/\\\(|\\\)/g, '');
-  out = out.replace(/\\frac\{d\}\{dx\}/g, 'd/dx');
-  out = out.replace(/\\text\s*\{([^}]*)\}/g, '$1');
-  out = out.replace(/\\quad/g, ' ');
-  out = out.replace(/\\;|\\,/g, ' ');
-  out = out.replace(/\\/g, '');
-  out = out.replace(/\s\*\s/g, ' * ');
-  out = out.replace(/x\^0/g, '1');
-  out = out.replace(/x\^1\b/g, 'x');
-  out = out.replace(/x\^2/g, 'x^2');
-  out = out.replace(/x\^3/g, 'x^3');
-  out = out.replace(/x\^4/g, 'x^4');
-  out = out.replace(/x\^5/g, 'x^5');
-  out = out.replace(/x\^6/g, 'x^6');
-  out = out.replace(/x\^7/g, 'x^7');
-  out = out.replace(/x\^8/g, 'x^8');
-  out = out.replace(/x\^9/g, 'x^9');
-  out = out.replace(/x\^n\b/g, 'x^n');
-  out = out.replace(/x\^\(([^)]+)\)/g, 'x^$1');
+function escapeHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatInlineMath(html) {
+  let out = normalizeCompactMathPieces(String(html || ''));
+  // Hard fallback for any residual frac tokens that escaped earlier normalization.
+  out = out.replace(/(-?)\s*frac\s*\{\s*([^{}]+)\s*\}\s*\{\s*([^{}]+)\s*\}/gi, (_m, sign, num, den) => {
+    const n = normalizeCompactMathPieces(num);
+    const d = normalizeCompactMathPieces(den);
+    return `${sign}(${n})/(${d})`;
+  });
+  out = out.replace(/<=/g, '≤').replace(/>=/g, '≥').replace(/!=/g, '≠');
+  out = out.replace(/->/g, '→').replace(/<-/g, '←');
+  out = out.replace(/\s\*\s/g, ' × ');
+  out = out.replace(/\bsqrt\s*\(\s*([^)]+)\s*\)/gi, '√($1)');
+  out = out.replace(/√\(\s*([A-Za-z0-9]+)\s*\)/g, '√$1');
+  // Normalize compact model output like x2sqrt(x) => x^2 × √x (for display).
+  out = out.replace(/([A-Za-z])(\d+)(?=√|\b)/g, '$1^$2');
+  out = out.replace(/([A-Za-z0-9\)])(?=√)/g, '$1 × ');
+  // Parenthesized symbolic fractions: (4)/(x × √x), (a+b)/(c-d)
+  out = out.replace(/\(\s*([A-Za-z0-9+\-×*√^.\s]+)\s*\)\s*\/\s*\(\s*([A-Za-z0-9+\-×*√^.\s]+)\s*\)/g, (_m, num, den) =>
+    `<span class="math-frac"><span class="num">${num.trim()}</span><span class="bar"></span><span class="den">${den.trim()}</span></span>`
+  );
+  // Parenthesized numeric fractions: (3)/(2), (-5)/(2)
+  out = out.replace(/\(\s*(-?\d+)\s*\)\s*\/\s*\(\s*(-?\d+)\s*\)/g, (_m, num, den) =>
+    `<span class="math-frac"><span class="num">${num}</span><span class="bar"></span><span class="den">${den}</span></span>`
+  );
+  // Plain numeric fractions: 3/2, -5/2
+  out = out.replace(/\b(-?\d+)\s*\/\s*(-?\d+)\b/g, (_m, num, den) =>
+    `<span class="math-frac"><span class="num">${num}</span><span class="bar"></span><span class="den">${den}</span></span>`
+  );
+  out = out.replace(/([A-Za-z0-9\)\]])\^\(([^)]+)\)/g, '$1<sup>$2</sup>');
+  out = out.replace(/([A-Za-z0-9\)\]])\^(-?[A-Za-z0-9]+)/g, '$1<sup>$2</sup>');
   return out;
+}
+
+function isLikelyMathLine(line) {
+  const s = String(line || '');
+  if (!s) return false;
+  const hasMathToken = /[\d+\-*/^()]/.test(s);
+  const hasMathWord = /\b(solve|simplify|evaluate|equation|expression|factor)\b/i.test(s);
+  return hasMathToken || hasMathWord;
+}
+
+function formatMathHtml(s) {
+  if (!s) return s;
+  let out = normalizeModelMathText(s);
+  out = out.replace(/\(\s*d\s*\)\s*\/\s*\(\s*d\s*x\s*\)/gi, 'd/dx');
+
+  const lines = out.split('\n');
+  const rendered = [];
+  for (const lineRaw of lines) {
+    const line = String(lineRaw || '').trim();
+    if (!line) { rendered.push(''); continue; }
+    if (/^Solution\s*-\s*.*Style$/i.test(line)) continue;
+    if (/^\S+\s*\|\s*\S+$/i.test(line)) continue;
+    if (/^[PCAI]$/i.test(line)) continue;
+
+    if (line.includes('=') && isLikelyMathLine(line)) {
+      const parts = line.split(/\s*=\s*/).map(p => p.trim()).filter(Boolean);
+      if (parts.length >= 3) {
+        const first = formatInlineMath(escapeHtml(`${parts[0]} = ${parts[1]}`));
+        rendered.push(`<span class="eq-line">${first}</span>`);
+        for (let i = 2; i < parts.length; i++) {
+          rendered.push(`<span class="eq-cont">${formatInlineMath(escapeHtml(`= ${parts[i]}`))}</span>`);
+        }
+        continue;
+      }
+    }
+
+    rendered.push(formatInlineMath(escapeHtml(line)));
+  }
+
+  return rendered.join('<br>');
 }
 function mkLine(line, n) {
   const wrap = document.createElement('div');
@@ -1315,9 +1551,12 @@ function mkLine(line, n) {
   }
 
   const cnt = document.createElement('div'); cnt.className='scontent';
-  const tx  = document.createElement('div'); tx.className='stext'; tx.textContent=formatMathText(line.text); cnt.appendChild(tx);
+  const tx  = document.createElement('div'); tx.className='stext'; tx.innerHTML = formatMathHtml(line.text); cnt.appendChild(tx);
   if (line.tip) {
-    const tip = document.createElement('div'); tip.className='stip'; tip.textContent='Tip: '+formatMathText(line.tip); cnt.appendChild(tip);
+    const tip = document.createElement('div');
+    tip.className='stip';
+    tip.innerHTML = `<span class="math-tip-label">Tip:</span> ${formatMathHtml(line.tip)}`;
+    cnt.appendChild(tip);
   }
   main.appendChild(cnt);
 
@@ -1397,22 +1636,41 @@ function renderHistory() {
     b.className = 'history-item' + (h.id===activeId ? ' active' : '');
     b.innerHTML = `<span class="hist-badge">${MODES[h.mode].badge}</span><span>${h.problem}</span>`;
     b.addEventListener('click', () => {
-      activeId=h.id; detail=h.detail;
-      setMode(h.mode, { clear: false });
-      document.querySelectorAll('.detail-btn').forEach(x=>x.classList.toggle('active',x.dataset.detail===h.detail));
+      activeId=h.id;
+      setMode(h.mode, { clear: false, persist: false });
+      setDetail(h.detail, { persist: false });
       renderSolution(h.solution); renderHistory(); renderChat(h);
       followUp = true; setFollowUpUI();
+      scheduleSaveAppState();
     });
     histList.appendChild(b);
   }
 }
 
 // -- INIT --
+loadAppState();
 applyTheme();
-setMode(mode, { clear: false });
+setMode(mode, { clear: false, persist: false });
+setDetail(detail, { persist: false });
+setFollowUpUI();
 solveTxt.textContent = 'Solve';
-renderChat(null);
+renderHistory();
+if (history.length) {
+  const entry = history.find(h => h.id === activeId) || history[0];
+  if (entry) {
+    activeId = entry.id;
+    setMode(entry.mode, { clear: false, persist: false });
+    setDetail(entry.detail, { persist: false });
+    renderSolution(entry.solution);
+    renderChat(entry);
+  } else {
+    renderChat(null);
+  }
+} else {
+  renderChat(null);
+}
 loadModels();
+updateBtn();
 </script>
 </body>
 </html>

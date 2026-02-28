@@ -11,8 +11,5 @@
     "start": "node server.js",
     "dev": "node --trace-warnings --trace-uncaught server.js",
     "debug": "node --inspect --trace-warnings --trace-uncaught server.js"
-  },
-  "dependencies": {
-    "tesseract.js": "^7.0.0"
   }
 }

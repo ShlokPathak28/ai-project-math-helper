@@ -22,9 +22,10 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GROQ_HOST = 'api.groq.com';
 const STATIC_ROOT = __dirname;
 const MAX_CHAT_BYTES = 20_000_000;
-const MAX_OCR_BYTES = 6_000_000;
 
 const GROQ_MODELS_FALLBACK = [
+  { name: 'meta-llama/llama-4-maverick-17b-128e-instruct' },
+  { name: 'meta-llama/llama-4-scout-17b-16e-instruct' },
   { name: 'llama-3.3-70b-versatile' },
   { name: 'llama-3.1-8b-instant' },
   { name: 'llama3-70b-8192' },
@@ -147,8 +148,8 @@ function listModels(reqId, res) {
         .filter((m) => {
           const id = typeof m?.id === 'string' ? m.id : '';
           if (!id) return false;
-          // Skip audio, vision-preview, guard, embedding and tool-use only models
-          if (/whisper|tts|embed|guard|vision/.test(id)) return false;
+          // Skip non-chat models (audio, embeddings, guard models, etc.)
+          if (/whisper|tts|embed|guard/.test(id)) return false;
           return true;
         })
         .map((m) => ({ name: m.id }));
@@ -166,19 +167,34 @@ function listModels(reqId, res) {
 }
 
 function doGroqChat(reqId, res, model, messages) {
-  // Convert Ollama-style messages (with optional .images array) to plain
-  // OpenAI text-only messages for the Groq chat completions endpoint.
+  // Convert messages to OpenAI-compatible format.
+  // If images are present, send multimodal content blocks for vision models.
   const groqMessages = messages.map((m) => {
-    if (m.images && m.images.length) {
-      // Groq text-only models: append an explicit note about the image.
-      return {
-        role: m.role,
-        content: (m.content || '') +
-          '\n[Note: An image was attached but this model only accepts text. ' +
-          'Please interpret the problem described in the text above.]',
-      };
+    const hasImages = Array.isArray(m?.images) && m.images.length > 0;
+    if (!hasImages) {
+      return { role: m.role, content: m.content };
     }
-    return { role: m.role, content: m.content };
+
+    const content = [];
+    if (m.content) {
+      content.push({ type: 'text', text: String(m.content) });
+    }
+
+    for (const img of m.images) {
+      // Support both legacy string images (base64-only) and structured objects.
+      const data = typeof img === 'string' ? img : String(img?.data || '');
+      const mime = typeof img === 'object' && img?.mime ? String(img.mime) : 'image/png';
+      if (!data) continue;
+      content.push({
+        type: 'image_url',
+        image_url: { url: `data:${mime};base64,${data}` },
+      });
+    }
+
+    if (!content.length) {
+      return { role: m.role, content: m.content || '' };
+    }
+    return { role: m.role, content };
   });
 
   const body = {
@@ -232,29 +248,6 @@ function proxyGroqChat(reqId, res, body) {
   doGroqChat(reqId, res, parsed.model, parsed.messages);
 }
 
-// ---- OCR (unchanged from Ollama version) ----
-
-let Tesseract = null;
-try {
-  Tesseract = require('tesseract.js');
-  log('INFO', 'tesseract.js loaded. OCR endpoint enabled.');
-} catch {
-  log('WARN', 'tesseract.js not installed. OCR endpoint will return tesseract_not_installed.');
-}
-
-async function runOCR(reqId, base64, res) {
-  if (!Tesseract) {
-    return sendJson(res, 200, { text: null, error: 'tesseract_not_installed' });
-  }
-  try {
-    const buf = Buffer.from(base64, 'base64');
-    const { data } = await Tesseract.recognize(buf, 'eng');
-    sendJson(res, 200, { text: (data?.text || '').trim() });
-  } catch (err) {
-    jsonError(reqId, res, 500, `OCR failed: ${err.message}`, err);
-  }
-}
-
 // ---- STATIC FILES ----
 
 function serveStatic(reqId, reqPath, res) {
@@ -305,20 +298,6 @@ function requestHandler(req, res) {
 
   if (req.method === 'POST' && pathname === '/api/chat') {
     return readBody(req, res, reqId, MAX_CHAT_BYTES, (body) => proxyGroqChat(reqId, res, body));
-  }
-
-  if (req.method === 'POST' && pathname === '/api/ocr') {
-    return readBody(req, res, reqId, MAX_OCR_BYTES, (body) => {
-      try {
-        const payload = JSON.parse(body);
-        if (!payload?.image || typeof payload.image !== 'string') {
-          return jsonError(reqId, res, 400, 'Invalid payload. Expected { image: <base64> }');
-        }
-        runOCR(reqId, payload.image, res);
-      } catch {
-        jsonError(reqId, res, 400, 'Invalid JSON body');
-      }
-    });
   }
 
   if (pathname.startsWith('/api/')) {
