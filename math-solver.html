@@ -197,9 +197,6 @@ body.sb-open .backdrop{opacity:1;pointer-events:auto}
 .chat-msg.ai{align-self:flex-start;background:var(--bg2);color:var(--text);cursor:pointer}
 .chat-msg.ai:hover{background:var(--surface2)}
 .chat-msg.selected{outline:1px solid var(--ma);outline-offset:2px}
-.chat-input{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border);background:var(--surface)}
-.chat-input input{flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-family:var(--fm);font-size:14px;color:var(--text);outline:none}
-.chat-input button{padding:9px 14px;border-radius:8px;border:none;background:var(--ma);color:#fff;font-weight:600;font-size:13px;cursor:pointer}
 
 .empty{text-align:center;padding:60px 20px;color:var(--text3)}
 .empty-glyph{font-family:var(--fd);font-size:54px;margin-bottom:12px;opacity:.3;color:var(--ma);transition:color var(--t)}
@@ -323,10 +320,6 @@ body.sb-open .backdrop{opacity:1;pointer-events:auto}
       <div class="chat-card" id="chatCard">
         <div class="chat-head">Follow-up Chat</div>
         <div class="chat-body" id="chatBody"></div>
-        <div class="chat-input">
-          <input id="chatInput" type="text" placeholder="Ask a follow-up..." />
-          <button id="chatSend">Send</button>
-        </div>
       </div>
 
     </div>
@@ -432,8 +425,6 @@ const ocrMsg      = document.getElementById('ocrMsg');
 const ocrDone     = document.getElementById('ocrDone');
 const chatCard    = document.getElementById('chatCard');
 const chatBody    = document.getElementById('chatBody');
-const chatInput   = document.getElementById('chatInput');
-const chatSend    = document.getElementById('chatSend');
 
 // -- COLORS / THEME --
 function applyColors() {
@@ -672,8 +663,6 @@ probInput.addEventListener('input', updateBtn);
 probInput.addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') solve(); });
 followBtn.addEventListener('click', () => { followUp = !followUp; setFollowUpUI(); });
 newBtn.addEventListener('click', () => { startNewProblem(); });
-chatSend.addEventListener('click', () => { submitChat(); });
-chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitChat(); });
 function setFollowUpUI() {
   followBtn.classList.toggle('active', followUp);
 }
@@ -686,16 +675,6 @@ function startNewProblem() {
   setFollowUpUI();
   chatBody.innerHTML = '';
 }
-
-function submitChat() {
-  const text = chatInput.value.trim();
-  if (!text) return;
-  probInput.value = text;
-  followUp = true;
-  setFollowUpUI();
-  chatInput.value = '';
-  solve({ forceFollow: true });
-}
 function updateBtn() {
   solveBtn.disabled = !(model && (probInput.value.trim() || imgData));
 }
@@ -705,7 +684,18 @@ function cleanPromptForDisplay(text) {
   let out = String(text).trim();
   out = out.replace(/^Math problem:\s*/i, '');
   out = out.replace(/^Follow-up question about the same problem:\s*/i, '');
-  out = out.replace(/\n?Respond using the exact required format[\s\S]*$/i, '').trim();
+  const lines = out.split('\n');
+  out = lines
+    .filter(line => {
+      const t = line.trim();
+      if (!t) return true;
+      if (/^Respond using the exact required format/i.test(t)) return false;
+      if (/^Respond clearly in plain text\./i.test(t)) return false;
+      if (/^Your previous response had missing\/invalid formatting/i.test(t)) return false;
+      return true;
+    })
+    .join('\n')
+    .trim();
   return out || 'Problem';
 }
 
@@ -730,7 +720,7 @@ function renderChat(entry) {
   if (!entry || !entry.messages || entry.messages.length === 0) {
     const empty = document.createElement('div');
     empty.style.cssText = 'color:var(--text3);font-family:var(--fm);font-size:12px;text-align:center;padding:20px 8px';
-    empty.textContent = 'No follow-ups yet. Ask a question below.';
+    empty.textContent = 'No follow-ups yet. Type in the main box above and click Solve.';
     chatBody.appendChild(empty);
     return;
   }
@@ -1426,5 +1416,3 @@ loadModels();
 </script>
 </body>
 </html>
-
-
