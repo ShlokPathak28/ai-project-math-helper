@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Math Solver AI Notes</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231f766d'/%3E%3Ctext x='50%25' y='54%25' text-anchor='middle' dominant-baseline='middle' font-family='Georgia, serif' font-size='34' fill='white'%3EM%3C/text%3E%3C/svg%3E" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Source+Serif+4:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+@theme {
+  --font-display: "Source Serif 4", serif;
+  --font-body: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --color-ink: #1f1a17;
+  --color-paper: #fffdf9;
+  --color-paper-soft: #f8f4ed;
+  --color-line: rgba(88,68,43,.14);
+  --color-accent: #1f766d;
+}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/github.min.css">
+<script defer src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/highlight.min.js"></script>
+<style>
+:root{
+  --bg:#f5f1e8;
+  --surface:#fffdf9;
+  --surface-muted:#f2ebdf;
+  --surface-soft:rgba(255,251,245,.88);
+  --border:rgba(88,68,43,.14);
+  --border-strong:rgba(88,68,43,.24);
+  --text:#1f1a17;
+  --text-soft:#5b5248;
+  --text-faint:#8a7d70;
+  --ma:#1f766d;
+  --ma-bg:rgba(31,118,109,.12);
+  --ma-bd:rgba(31,118,109,.26);
+  --danger:#b91c1c;
+  --shadow:0 18px 40px rgba(31,24,17,.10);
+  --fb:'Space Grotesk',sans-serif;
+  --fd:'Source Serif 4',serif;
+  --fm:'JetBrains Mono',monospace;
+}
+[data-theme=dark]{
+  --bg:#171412;
+  --surface:#221d19;
+  --surface-muted:#2a241f;
+  --surface-soft:rgba(33,28,24,.88);
+  --border:rgba(233,221,205,.10);
+  --border-strong:rgba(233,221,205,.18);
+  --text:#f5efe8;
+  --text-soft:#c8bcaf;
+  --text-faint:#998d82;
+  --ma:#59c0b4;
+  --ma-bg:rgba(89,192,180,.14);
+  --ma-bd:rgba(89,192,180,.28);
+  --shadow:0 24px 56px rgba(0,0,0,.28);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{
+  min-height:100dvh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--fb);
+  overflow-x:hidden;
+  overflow-y:auto;
+  transition:background .22s cubic-bezier(.4,0,.2,1),color .22s cubic-bezier(.4,0,.2,1);
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:-20vmax;
+  background:
+    radial-gradient(58vmax 36vmax at 12% 12%, rgba(188,142,79,.16), transparent 60%),
+    radial-gradient(56vmax 40vmax at 88% 8%, rgba(31,118,109,.10), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0));
+  pointer-events:none;
+  z-index:0;
+}
+[data-theme=dark] body::before{
+  background:
+    radial-gradient(58vmax 36vmax at 12% 12%, rgba(135,92,40,.15), transparent 60%),
+    radial-gradient(56vmax 40vmax at 88% 8%, rgba(89,192,180,.09), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+}
+a{color:var(--ma)}
+button,input,select,textarea{font:inherit}
+button{border:none;background:none}
+[hidden]{display:none !important}
+textarea,select{border:none}
+.page-shell{position:relative;z-index:1}
+.page-header{
+  width:min(1180px, calc(100% - 32px));
+  margin:0 auto;
+  padding:28px 0 20px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+}
+.eyebrow{
+  font:600 11px/1 var(--fm);
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+}
+.brand-copy h1{
+  margin-top:10px;
+  font-family:var(--fd);
+  font-size:clamp(1.7rem, 4vw, 2.6rem);
+  line-height:1.03;
+}
+.brand-copy p:last-child{
+  margin-top:10px;
+  color:var(--text-soft);
+  line-height:1.65;
+  max-width:62ch;
+}
+.page-nav{display:flex;gap:10px;flex-wrap:wrap}
+.utility-link{
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+  padding:0 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text-soft);
+  text-decoration:none;
+  box-shadow:var(--shadow);
+}
+.utility-link:hover{background:var(--surface-muted);color:var(--text)}
+.page-main{
+  width:min(1180px, calc(100% - 32px));
+  margin:0 auto 48px;
+  display:grid;
+  grid-template-columns:minmax(320px, 380px) minmax(0, 1fr);
+  gap:20px;
+}
+.form-card,.preview-shell{
+  background:var(--surface-soft);
+  border:1px solid var(--border);
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(16px);
+}
+.form-card{padding:24px}
+.card-head h2{
+  margin-top:10px;
+  font-family:var(--fd);
+  font-size:2rem;
+  line-height:1.05;
+}
+.field,.control-group{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:18px;
+}
+.field-label{
+  font:600 11px/1.2 var(--fm);
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+}
+textarea,select{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  color:var(--text);
+}
+textarea{
+  min-height:180px;
+  padding:16px 16px 18px;
+  line-height:1.7;
+  resize:vertical;
+}
+select{
+  min-height:46px;
+  padding:0 14px;
+}
+.check-row{
+  margin-top:16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--text-soft);
+  cursor:pointer;
+}
+.check-row input{
+  width:18px;
+  height:18px;
+  accent-color:var(--ma);
+}
+.action-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:22px;
+}
+.primary-btn,.secondary-btn{
+  min-height:46px;
+  padding:0 18px;
+  border-radius:999px;
+  cursor:pointer;
+}
+.primary-btn{
+  background:var(--ma);
+  color:#fff;
+  box-shadow:0 12px 26px rgba(31,118,109,.24);
+}
+.secondary-btn{
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text-soft);
+}
+.primary-btn:hover:not(:disabled){filter:brightness(1.04);transform:translateY(-1px)}
+.secondary-btn:hover:not(:disabled){background:var(--surface-muted);color:var(--text)}
+.form-status{
+  min-height:22px;
+  margin-top:14px;
+  color:var(--text-soft);
+  font-size:13px;
+  line-height:1.5;
+}
+.form-status.error{color:var(--danger)}
+.preview-shell{
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.preview-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.preview-empty{
+  min-height:520px;
+  border:1px dashed var(--border-strong);
+  border-radius:24px;
+  background:rgba(255,255,255,.08);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:36px 24px;
+}
+.empty-mark{
+  width:72px;
+  height:72px;
+  border-radius:22px;
+  display:grid;
+  place-items:center;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--ma);
+  font:700 16px/1 var(--fm);
+  letter-spacing:.14em;
+  margin-bottom:18px;
+}
+.preview-empty h2{
+  font-family:var(--fd);
+  font-size:2rem;
+  line-height:1.05;
+}
+.preview-empty p{
+  margin-top:10px;
+  color:var(--text-soft);
+  line-height:1.7;
+  max-width:48ch;
+}
+.notes-preview,.print-sheet{background:#fff;color:#171412}
+.notes-preview .katex{font-size:1.04em}
+.formula-block code{white-space:pre-wrap;word-break:break-word}
+.page-break-before{break-before:page;page-break-before:always}
+.print-sheet{
+  width:min(100%, 820px);
+  margin:0 auto;
+  padding:56px;
+  border-radius:24px;
+  box-shadow:var(--shadow);
+}
+.notes-doc-head h2,
+.note-section h3,
+.revision-box h3,
+.examples-block h3{
+  font-family:var(--fd);
+}
+.notes-doc-head h2{
+  margin-top:22px;
+  font-size:2.4rem;
+  line-height:1.16;
+  max-width:12ch;
+}
+.notes-summary{
+  margin-top:26px;
+  font-size:1.05rem;
+  line-height:1.9;
+  color:#433a33;
+  max-width:46ch;
+}
+.notes-doc-head{
+  padding:0 0 18px;
+  border-bottom:1px solid rgba(88,68,43,.12);
+}
+[data-theme=dark] .notes-doc-head{border-bottom-color:rgba(233,221,205,.12)}
+.revision-box,.example-card{
+  border:1px solid rgba(88,68,43,.14);
+  background:#f8f4ed;
+  border-radius:18px;
+  padding:24px;
+}
+.revision-box{margin-top:26px}
+.revision-box ul,.key-points{
+  margin-top:16px;
+  padding-left:22px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.note-section{
+  margin-top:36px;
+  padding-top:28px;
+  border-top:1px solid rgba(88,68,43,.12);
+}
+.section-kicker{
+  font:600 11px/1 var(--fm);
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#6b6258;
+}
+.note-section h3,.examples-block h3{
+  margin-top:12px;
+  font-size:1.65rem;
+  line-height:1.08;
+}
+.section-body,.example-solution{
+  margin-top:14px;
+  line-height:1.9;
+  color:#2a241f;
+}
+.section-card,
+.question-card,
+.solution-card,
+.key-points-card{
+  padding:22px 24px;
+}
+.section-card > :first-child,
+.question-card > :first-child,
+.solution-card > :first-child,
+.key-points-card > :first-child{
+  margin-top:0 !important;
+}
+.rich-text-block p + p{margin-top:14px}
+.rich-text-block .math-line{
+  margin-top:10px;
+  line-height:1.9;
+  color:#1f1a17;
+}
+.rich-text-block .math-line:first-child{margin-top:0}
+.examples-block{margin-top:32px}
+.examples-grid{
+  margin-top:18px;
+  display:grid;
+  gap:18px;
+}
+.example-card h4{
+  font-family:var(--fd);
+  font-size:1.2rem;
+}
+.example-question{
+  margin-top:12px;
+  line-height:1.85;
+  color:#2a241f;
+  font-weight:500;
+}
+select:disabled,
+button:disabled,
+textarea:disabled,
+input:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+a:focus-visible{
+  outline:3px solid var(--ma-bg);
+  outline-offset:2px;
+}
+@media (max-width:980px){
+  .page-header,.page-main{width:min(100%, calc(100% - 24px))}
+  .page-main{grid-template-columns:1fr}
+  .page-header{padding:22px 0 18px;flex-direction:column}
+}
+@media (max-width:640px){
+  .form-card,.preview-shell{border-radius:22px}
+  .print-sheet{padding:28px}
+  .preview-empty{min-height:320px}
+}
+@media print{
+  body{background:#fff !important}
+  body::before{display:none !important}
+  .page-header,.form-card,.preview-actions{display:none !important}
+  .page-main{display:block;width:auto;margin:0}
+  .preview-shell{padding:0;background:#fff;border:none;box-shadow:none}
+  .notes-preview,.print-sheet{
+    width:auto;
+    margin:0;
+    padding:0;
+    box-shadow:none;
+    border:none;
+    border-radius:0;
+  }
+  .note-section,.example-card,.revision-box{
+    break-inside:avoid;
+    page-break-inside:avoid;
+  }
+  .page-break-before{break-before:page;page-break-before:always}
+}
+</style>
+</head>
+<body>
+<div class="page-shell">
+  <header class="page-header">
+    <div class="brand-copy">
+      <p class="eyebrow">Math Solver AI</p>
+      <h1>Notes Generator</h1>
+      <p>Create printable study notes, practice questions, and worked solutions from one topic prompt.</p>
+    </div>
+    <nav class="page-nav">
+      <a class="utility-link" href="/">Solver</a>
+    </nav>
+  </header>
+
+  <main class="page-main">
+    <section class="form-card">
+      <div class="card-head">
+        <p class="eyebrow">Generator</p>
+        <h2>Build study notes</h2>
+      </div>
+
+      <label class="field">
+        <span class="field-label">Topic or Question</span>
+        <textarea id="topicInput" rows="8" placeholder="Example: Explain integration by substitution with intuitive notes and practice problems."></textarea>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Depth</span>
+        <select id="noteDepth">
+          <option value="concise">Concise</option>
+          <option value="standard" selected>Standard</option>
+          <option value="deep">Deep</option>
+        </select>
+      </label>
+
+      <label class="check-row">
+        <input type="checkbox" id="includeExamples" checked />
+        <span>Include example questions</span>
+      </label>
+
+      <label class="check-row">
+        <input type="checkbox" id="includeSolutions" checked />
+        <span>Include worked solutions</span>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Example Count</span>
+        <select id="exampleCount">
+          <option value="3" selected>3 examples</option>
+          <option value="5">5 examples</option>
+          <option value="8">8 examples</option>
+        </select>
+      </label>
+
+      <div class="action-row">
+        <button id="generateBtn" class="primary-btn" type="button">Generate Notes</button>
+      </div>
+
+      <div id="formStatus" class="form-status" aria-live="polite"></div>
+    </section>
+
+    <section class="preview-shell">
+      <div class="preview-actions" id="previewActions" hidden>
+        <button id="downloadPdfBtn" class="primary-btn" type="button">Download PDF</button>
+        <button id="printBtn" class="secondary-btn" type="button">Print / Save as PDF</button>
+      </div>
+      <div class="preview-empty" id="previewEmpty">
+        <div class="empty-mark">PDF</div>
+        <h2>Your notes preview will appear here</h2>
+        <p>Ask for a topic, choose practice options, then generate clean printable notes.</p>
+      </div>
+      <section class="notes-preview" id="notesPreview" hidden></section>
+    </section>
+  </main>
+</div>
+
+<script>
+const topicInput = document.getElementById('topicInput');
+const noteDepth = document.getElementById('noteDepth');
+const includeExamples = document.getElementById('includeExamples');
+const includeSolutions = document.getElementById('includeSolutions');
+const exampleCount = document.getElementById('exampleCount');
+const generateBtn = document.getElementById('generateBtn');
+const formStatus = document.getElementById('formStatus');
+const previewEmpty = document.getElementById('previewEmpty');
+const previewActions = document.getElementById('previewActions');
+const notesPreview = document.getElementById('notesPreview');
+const printBtn = document.getElementById('printBtn');
+const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+const APP_STATE_KEY = 'math-solver-state-v1';
+
+let dark = false;
+
+let activeModel = '';
+let lastRawNotes = '';
+let lastParsedDoc = null;
+let availableModels = [];
+
+function applyTheme() {
+  document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+}
+
+function loadThemeFromState() {
+  try {
+    const raw = localStorage.getItem(APP_STATE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    dark = !!parsed?.dark;
+  } catch {}
+  applyTheme();
+}
+
+window.addEventListener('storage', (event) => {
+  if (event.key !== APP_STATE_KEY) return;
+  loadThemeFromState();
+});
+
+loadThemeFromState();
+
+function syncExampleControls() {
+  const examplesOn = includeExamples.checked;
+  exampleCount.disabled = !examplesOn;
+  includeSolutions.disabled = !examplesOn;
+  if (!examplesOn) includeSolutions.checked = false;
+}
+
+includeExamples.addEventListener('change', syncExampleControls);
+includeSolutions.addEventListener('change', () => {
+  if (includeSolutions.checked) includeExamples.checked = true;
+  syncExampleControls();
+});
+syncExampleControls();
+
+function getTopicValue() {
+  return String(topicInput.value || '').trim();
+}
+
+function setStatus(message, isError = false) {
+  formStatus.textContent = message;
+  formStatus.classList.toggle('error', !!isError);
+}
+
+function validateForm() {
+  if (!getTopicValue()) {
+    setStatus('Enter a topic or question first.', true);
+    return false;
+  }
+  setStatus('');
+  return true;
+}
+
+function setGenerating(on) {
+  generateBtn.disabled = on;
+  generateBtn.textContent = on ? 'Generating...' : 'Generate Notes';
+  if (on) setStatus('Generating notes...');
+}
+
+async function loadModels() {
+  const res = await fetch('/api/models');
+  const data = await res.json();
+  return Array.isArray(data.models) ? data.models.map((m) => m?.name).filter(Boolean) : [];
+}
+
+function choosePreferredModels(models) {
+  const list = Array.isArray(models) ? models.filter(Boolean) : [];
+  const safe = list.filter((name) => !/canopylabs|allam/i.test(name));
+  const ranked = [
+    /meta-llama\/llama-4-scout/i,
+    /llama-3\.3-70b-versatile/i,
+    /meta-llama\/llama-4-maverick/i,
+    /openai\/gpt-oss-20b/i,
+    /openai\/gpt-oss-120b/i,
+    /groq\/compound-mini/i,
+    /llama-3\.1-8b-instant/i,
+    /qwen/i,
+    /gemma/i,
+    /mixtral/i,
+    /compound/i,
+    /llama/i
+  ];
+  const ordered = [];
+  for (const rule of ranked) {
+    for (const name of safe) {
+      if (rule.test(name) && !ordered.includes(name)) ordered.push(name);
+    }
+  }
+  for (const name of safe) {
+    if (!ordered.includes(name)) ordered.push(name);
+  }
+  return ordered.length ? ordered : list;
+}
+
+function buildNotesPrompt() {
+  const topic = getTopicValue();
+  const depth = noteDepth.value;
+  const wantExamples = includeExamples.checked;
+  const wantSolutions = includeSolutions.checked;
+  const count = Number(exampleCount.value || '3');
+  const exactCount = wantExamples ? count : 0;
+
+  return `You are a math study-notes generator.
+Create clean educational notes for this topic/question:
+${topic}
+
+Depth: ${depth}
+Include examples: ${wantExamples ? 'yes' : 'no'}
+Include solutions: ${wantSolutions ? 'yes' : 'no'}
+Example count: ${exactCount}
+
+Output plain text only. Use exact labels:
+TITLE:
+SUMMARY:
+REVISION POINTS:
+- point 1
+- point 2
+
+SECTION 1 TITLE:
+SECTION 1 BODY:
+SECTION 1 KEY POINTS:
+- point 1
+- point 2
+
+Repeat SECTION N blocks as needed.
+If examples are requested, include exactly ${exactCount} example blocks:
+EXAMPLE 1 QUESTION:
+${wantSolutions ? 'EXAMPLE 1 SOLUTION:' : ''}
+
+Do not use markdown headings. Do not omit labels.`;
+}
+
+async function callGroqNotes(model, prompt, systemPrompt = 'You create structured educational study notes.') {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ]
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
+  if (!data?.text) throw new Error('Empty notes response.');
+  return String(data.text);
+}
+
+async function callGroqNotesWithFallback(prompt, systemPrompt) {
+  const candidates = activeModel
+    ? [activeModel, ...availableModels.filter((name) => name !== activeModel)]
+    : [...availableModels];
+  let lastErr = null;
+  for (const model of candidates) {
+    try {
+      const text = await callGroqNotes(model, prompt, systemPrompt);
+      activeModel = model;
+      return text;
+    } catch (err) {
+      lastErr = err;
+      if (!/terms acceptance|Request Entity Too Large|Unsupported|too large/i.test(String(err.message || ''))) {
+        throw err;
+      }
+    }
+  }
+  throw lastErr || new Error('No model available.');
+}
+
+function createEmptyNotesDoc() {
+  return {
+    title: '',
+    summary: '',
+    revisionPoints: [],
+    sections: [],
+    examples: []
+  };
+}
+
+function normalizeNotesText(text) {
+  return String(text || '')
+    .replace(/âˆ«/g, '∫')
+    .replace(/âˆš/g, '√')
+    .replace(/d\\\(\s*([a-zA-Z])/g, 'd$1')
+    .replace(/\\\)\s*,\s*d([a-zA-Z])/g, ', d$1')
+    .replace(/\\\)/g, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\t/g, '  ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function latexizeFormula(text) {
+  let out = String(text || '').trim();
+  out = out.replace(/∫\s*\[\s*([^,\]]+)\s*,\s*([^\]]+)\s*\]\s*/g, '\\int_{$1}^{$2} ');
+  out = out.replace(/∫/g, '\\int ');
+  out = out.replace(/√\s*\(?([A-Za-z0-9+\-*/^ ]+)\)?/g, '\\sqrt{$1}');
+  out = out.replace(/([A-Za-z0-9\)])\/([A-Za-z0-9\(])/g, '$1/$2');
+  out = out.replace(/\(([^()]+)\)\/(\d+)/g, '\\frac{$1}{$2}');
+  out = out.replace(/\(([^()]+)\)\/\(([^()]+)\)/g, '\\frac{$1}{$2}');
+  out = out.replace(/\s*dx\b/g, ' \\, dx');
+  out = out.replace(/\s*du\b/g, ' \\, du');
+  out = out.replace(/\s*dv\b/g, ' \\, dv');
+  return out;
+}
+
+function injectMathDelimiters(text) {
+  let out = String(text || '');
+  const patterns = [
+    /∫\[[^\]]+\][^.\n]+?(?:dx|du|dv)(?:\s*=\s*[^.\n]+)?/g,
+    /∫[^.\n]+?(?:dx|du|dv)(?:\s*=\s*[^.\n]+)?/g,
+    /\([^)]+\)\s*=\s*0/g,
+    /x\s*=\s*[^.;,\n]+/g,
+    /a\s*=\s*[^.;,\n]+,\s*b\s*=\s*[^.;,\n]+,\s*and\s*c\s*=\s*[^.;,\n]+/gi
+  ];
+  for (const pattern of patterns) {
+    out = out.replace(pattern, (match) => {
+      const trimmed = match.trim();
+      if (trimmed.includes('\\(') || trimmed.includes('$$')) return trimmed;
+      return `\\(${latexizeFormula(trimmed)}\\)`;
+    });
+  }
+  return out;
+}
+
+function normalizeDisplayedMath(text) {
+  let out = normalizeNotesText(String(text || ''));
+  const patterns = [
+    /\\int[^.\n]+?(?:dx|du|dv)(?:\s*=\s*[^.\n]+)?/g,
+    /∫\[[^\]]+\][^.\n]+?(?:dx|du|dv)(?:\s*=\s*[^.\n]+)?/g,
+    /∫[^.\n]+?(?:dx|du|dv)(?:\s*=\s*[^.\n]+)?/g,
+    /\\frac\{[^}]+\}\{[^}]+\}/g,
+    /F'\(x\)\s*=\s*f\(x\)/g
+  ];
+  for (const pattern of patterns) {
+    out = out.replace(pattern, (match) => {
+      const trimmed = match.trim();
+      if (trimmed.includes('\\(') || trimmed.includes('$$')) return trimmed;
+      return `\\(${latexizeFormula(trimmed)}\\)`;
+    });
+  }
+  return out;
+}
+
+function renderRichParagraphs(text) {
+  return escapeHtml(normalizeDisplayedMath(text || ''))
+    .split(/\n{2,}/)
+    .map((block, idx) => `<p class="${idx === 0 ? 'mt-0' : 'mt-4'} leading-8 text-[15px] text-stone-800">${block.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+function renderKeyPoint(point) {
+  const rich = injectMathDelimiters(escapeHtml(point));
+  const formulaCandidate = /∫|\\\(|=|√|\^/.test(point);
+  return `
+    <li class="rounded-2xl border border-stone-200/80 bg-white/80 px-4 py-3">
+      <div class="text-[15px] leading-7 text-stone-800">${rich}</div>
+      ${formulaCandidate ? `<pre class="formula-block mt-3 overflow-x-auto rounded-xl border border-stone-200 bg-stone-50 p-3 text-[13px] leading-6"><code class="language-latex">${escapeHtml(latexizeFormula(point))}</code></pre>` : ''}
+    </li>
+  `;
+}
+
+function renderMathEnhancements(root) {
+  if (!root) return;
+  if (window.renderMathInElement) {
+    window.renderMathInElement(root, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false,
+      ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+    });
+  }
+  if (window.hljs) {
+    root.querySelectorAll('pre code').forEach((el) => window.hljs.highlightElement(el));
+  }
+}
+
+function normalizeNotesText(text) {
+  return String(text || '')
+    .replace(/Ã¢Ë†Â«/g, 'âˆ«')
+    .replace(/Ã¢Ë†Å¡/g, 'âˆš')
+    .replace(/âˆ«/g, '∫')
+    .replace(/âˆš/g, '√')
+    .replace(/d\\\(\s*([a-zA-Z])/g, 'd$1')
+    .replace(/\\\)\s*,\s*d([a-zA-Z])/g, ' d$1')
+    .replace(/\\\)\s*,/g, '')
+    .replace(/\\\(\s*/g, '')
+    .replace(/\\\)/g, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\t/g, '  ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function latexizeFormula(text) {
+  let out = normalizeNotesText(String(text || '').trim());
+  out = out.replace(/∫\s*\[\s*([^,\]]+)\s*,\s*([^\]]+)\s*\]\s*/g, '\\int_{$1}^{$2} ');
+  out = out.replace(/∫/g, '\\int ');
+  out = out.replace(/√\s*\(?([A-Za-z0-9+\-*/^ ]+)\)?/g, '\\sqrt{$1}');
+  out = out.replace(/\[([^\]]+)\]\s*from\s*([^\n]+?)\s*to\s*([^\n]+)/gi, '\\left[$1\\right]_{$2}^{$3}');
+  out = out.replace(/([A-Za-z0-9\)])\/([A-Za-z0-9\(])/g, '$1/$2');
+  out = out.replace(/\(([^()]+)\)\/(\d+)/g, '\\frac{$1}{$2}');
+  out = out.replace(/\(([^()]+)\)\/\(([^()]+)\)/g, '\\frac{$1}{$2}');
+  out = out.replace(/\\int\s+([^=\n]+?)\s+d([xuvt])\b/g, '\\int $1 \\, d$2');
+  out = out.replace(/\s*dx\b/g, ' \\, dx');
+  out = out.replace(/\s*du\b/g, ' \\, du');
+  out = out.replace(/\s*dv\b/g, ' \\, dv');
+  out = out.replace(/\s{2,}/g, ' ').trim();
+  return out;
+}
+
+function normalizeDisplayedMath(text) {
+  return normalizeNotesText(String(text || ''))
+    .split('\n')
+    .map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return line;
+      if (trimmed.includes('\\(') || trimmed.includes('$$')) return trimmed;
+      const startsAsEquation =
+        /^=/.test(trimmed) ||
+        /^\[[^\]]+\]\s*from\s+\S+\s+to\s+\S+$/i.test(trimmed) ||
+        /^\\?int\b/i.test(trimmed) ||
+        /^∫/.test(trimmed) ||
+        /^\\frac/.test(trimmed) ||
+        /^F'\(x\)\s*=/.test(trimmed);
+      const formulaTokens = /(?:\^|√|∫|\\int|\\frac|dx\b|du\b|dv\b)/.test(trimmed);
+      const startsWithWord = /^[A-Za-z]/.test(trimmed);
+      const proseWords = trimmed.match(/\b[A-Za-z]{3,}\b/g) || [];
+      const looksMath = startsAsEquation || (formulaTokens && !startsWithWord && proseWords.length <= 2);
+      return looksMath ? `\\(${latexizeFormula(trimmed)}\\)` : trimmed;
+    })
+    .join('\n');
+}
+
+function renderRichParagraphs(text) {
+  return escapeHtml(normalizeDisplayedMath(text || ''))
+    .split(/\n{2,}/)
+    .map((block, idx) => {
+      const lines = block.split('\n').map((line) => line.trim()).filter(Boolean);
+      const html = lines.map((line) => {
+        const isMathLine = line.startsWith('\\(') && line.endsWith('\\)');
+        if (isMathLine) {
+          return `<div class="math-line text-[15px]">${line}</div>`;
+        }
+        return `<p class="leading-8 text-[15px] text-stone-800">${line}</p>`;
+      }).join('');
+      return `<div class="rich-text-block ${idx === 0 ? 'mt-0' : 'mt-5'}">${html}</div>`;
+    })
+    .join('');
+}
+
+function parseBulletBlock(lines, startIndex) {
+  const items = [];
+  let i = startIndex;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (!line) {
+      i += 1;
+      continue;
+    }
+    if (/^[-*]\s+/.test(line)) {
+      items.push(line.replace(/^[-*]\s+/, '').trim());
+      i += 1;
+      continue;
+    }
+    if (/^[A-Z][A-Z0-9 ]+\d*\s*:/.test(line)) break;
+    items.push(line.trim());
+    i += 1;
+  }
+  return { items, nextIndex: i };
+}
+
+function collectUntilNextLabel(lines, startIndex) {
+  const out = [];
+  let i = startIndex;
+  while (i < lines.length) {
+    const raw = lines[i];
+    const line = raw.trim();
+    if (line && /^[A-Z][A-Z0-9 ]+\d*\s*:/.test(line)) break;
+    out.push(raw);
+    i += 1;
+  }
+  return {
+    text: out.join('\n').trim(),
+    nextIndex: i
+  };
+}
+
+function collectSingleValueOrBlock(lines, startIndex) {
+  let i = startIndex;
+  while (i < lines.length && !lines[i].trim()) i += 1;
+  if (i >= lines.length) return { text: '', nextIndex: i };
+  const first = lines[i].trim();
+  if (/^[A-Z][A-Z0-9 ]+\d*\s*:/.test(first)) {
+    return { text: '', nextIndex: i };
+  }
+  return collectUntilNextLabel(lines, i);
+}
+
+function parseNotesDocument(rawText) {
+  const text = normalizeNotesText(rawText);
+  const lines = text.split('\n');
+  const doc = createEmptyNotesDoc();
+  const sectionsMap = new Map();
+  const examplesMap = new Map();
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (!line) {
+      i += 1;
+      continue;
+    }
+
+    let m = line.match(/^TITLE:\s*(.*)$/i);
+    if (m) {
+      const inline = m[1].trim();
+      if (inline) {
+        doc.title = inline;
+        i += 1;
+      } else {
+        const block = collectSingleValueOrBlock(lines, i + 1);
+        doc.title = block.text.split('\n')[0]?.trim() || '';
+        i = block.nextIndex;
+      }
+      continue;
+    }
+
+    m = line.match(/^SUMMARY:\s*(.*)$/i);
+    if (m) {
+      const inline = m[1].trim();
+      if (inline) {
+        doc.summary = inline;
+        i += 1;
+      } else {
+        const block = collectSingleValueOrBlock(lines, i + 1);
+        doc.summary = block.text;
+        i = block.nextIndex;
+      }
+      continue;
+    }
+
+    if (/^REVISION POINTS:\s*$/i.test(line) || /^REVISION POINTS:\s*(.+)$/i.test(line)) {
+      const inline = line.replace(/^REVISION POINTS:\s*/i, '').trim();
+      if (inline) doc.revisionPoints.push(inline);
+      const block = parseBulletBlock(lines, i + 1);
+      doc.revisionPoints.push(...block.items);
+      i = block.nextIndex;
+      continue;
+    }
+
+    m = line.match(/^SECTION\s+(\d+)\s+TITLE:\s*(.*)$/i);
+    if (m) {
+      const key = Number(m[1]);
+      const item = sectionsMap.get(key) || { title: '', body: '', keyPoints: [] };
+      const inline = m[2].trim();
+      if (inline) {
+        item.title = inline;
+        i += 1;
+      } else {
+        const block = collectSingleValueOrBlock(lines, i + 1);
+        item.title = block.text.split('\n')[0]?.trim() || '';
+        i = block.nextIndex;
+      }
+      sectionsMap.set(key, item);
+      continue;
+    }
+
+    m = line.match(/^SECTION\s+(\d+)\s+BODY:\s*(.*)$/i);
+    if (m) {
+      const key = Number(m[1]);
+      const item = sectionsMap.get(key) || { title: '', body: '', keyPoints: [] };
+      const inline = m[2].trim();
+      if (inline) {
+        item.body = inline;
+        i += 1;
+      } else {
+        const block = collectSingleValueOrBlock(lines, i + 1);
+        item.body = block.text;
+        i = block.nextIndex;
+      }
+      sectionsMap.set(key, item);
+      continue;
+    }
+
+    m = line.match(/^SECTION\s+(\d+)\s+KEY POINTS:\s*(.*)$/i);
+    if (m) {
+      const key = Number(m[1]);
+      const item = sectionsMap.get(key) || { title: '', body: '', keyPoints: [] };
+      const inline = m[2].trim();
+      if (inline) item.keyPoints.push(inline);
+      const block = parseBulletBlock(lines, i + 1);
+      item.keyPoints.push(...block.items);
+      sectionsMap.set(key, item);
+      i = block.nextIndex;
+      continue;
+    }
+
+    m = line.match(/^EXAMPLE\s+(\d+)\s+QUESTION:\s*(.*)$/i);
+    if (m) {
+      const key = Number(m[1]);
+      const item = examplesMap.get(key) || { question: '', solution: '' };
+      const inline = m[2].trim();
+      if (inline) {
+        item.question = inline;
+        i += 1;
+      } else {
+        const block = collectSingleValueOrBlock(lines, i + 1);
+        item.question = block.text;
+        i = block.nextIndex;
+      }
+      examplesMap.set(key, item);
+      continue;
+    }
+
+    m = line.match(/^EXAMPLE\s+(\d+)\s+SOLUTION:\s*(.*)$/i);
+    if (m) {
+      const key = Number(m[1]);
+      const item = examplesMap.get(key) || { question: '', solution: '' };
+      const inline = m[2].trim();
+      if (inline) {
+        item.solution = inline;
+        i += 1;
+      } else {
+        const block = collectSingleValueOrBlock(lines, i + 1);
+        item.solution = block.text;
+        i = block.nextIndex;
+      }
+      examplesMap.set(key, item);
+      continue;
+    }
+
+    i += 1;
+  }
+
+  doc.sections = Array.from(sectionsMap.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([, section]) => ({
+      title: section.title,
+      body: section.body,
+      keyPoints: section.keyPoints.filter(Boolean)
+    }))
+    .filter((section) => section.title || section.body || section.keyPoints.length);
+
+  doc.examples = Array.from(examplesMap.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([, example]) => ({
+      question: example.question,
+      solution: example.solution
+    }))
+    .filter((example) => example.question || example.solution);
+
+  doc.revisionPoints = doc.revisionPoints.filter(Boolean);
+  return doc;
+}
+
+function parseNotesResponse(rawText) {
+  const normalized = normalizeNotesText(rawText);
+  return parseNotesDocument(normalized);
+}
+
+function isValidNotesDoc(doc) {
+  return !!(
+    doc &&
+    doc.title &&
+    doc.summary &&
+    Array.isArray(doc.sections) &&
+    doc.sections.length
+  );
+}
+
+async function reformatNotesResponse(model, rawText, prompt) {
+  return callGroqNotesWithFallback(
+    `Reformat this into required notes schema only.
+
+Original prompt:
+${prompt}
+
+Raw response:
+${rawText}`,
+    'You are a strict formatter. Output only the requested notes labels in plain text.'
+  );
+}
+
+function buildFallbackNotesDoc(rawText, topic) {
+  const lines = normalizeNotesText(rawText).split('\n').filter(Boolean);
+  return {
+    title: topic.slice(0, 80) || 'Study Notes',
+    summary: lines[0] || 'Generated notes',
+    revisionPoints: [],
+    sections: [
+      {
+        title: 'Generated Notes',
+        body: lines.join('\n'),
+        keyPoints: []
+      }
+    ],
+    examples: []
+  };
+}
+
+function renderKeyPointSimple(point) {
+  const rich = escapeHtml(normalizeDisplayedMath(point));
+  return `<li class="leading-8 text-stone-800">${rich}</li>`;
+}
+
+function renderNotesDoc(doc) {
+  const revisionHtml = doc.revisionPoints.length
+    ? `
+      <section class="revision-box mt-8 rounded-2xl border border-stone-200 bg-stone-50 p-7">
+        <h3 class="font-display text-2xl text-stone-900">Quick Revision</h3>
+        <ul class="mt-4 list-disc space-y-2 pl-5">${doc.revisionPoints.map((p) => renderKeyPointSimple(p)).join('')}</ul>
+      </section>` : '';
+
+  const sectionHtml = doc.sections.map((section, idx) => `
+    <section class="note-section ${idx > 0 && idx % 3 === 0 ? 'page-break-before' : ''} mt-10 border-t border-stone-200 pt-8">
+      <div class="section-kicker font-mono text-[11px] uppercase tracking-[0.22em] text-stone-500">Section ${idx + 1}</div>
+      <h3 class="mt-3 font-display text-[1.8rem] leading-tight text-stone-900">${escapeHtml(section.title || `Section ${idx + 1}`)}</h3>
+      <div class="section-card mt-6 rounded-2xl border border-stone-200 bg-white">
+        ${renderRichParagraphs(section.body || '')}
+      </div>
+      ${section.keyPoints.length ? `
+        <div class="key-points-card mt-6 rounded-2xl border border-stone-200 bg-stone-50">
+          <h4 class="font-mono text-[11px] uppercase tracking-[0.22em] text-stone-500">Key Points</h4>
+          <ul class="mt-4 list-disc space-y-2 pl-5">${section.keyPoints.map((p) => renderKeyPointSimple(p)).join('')}</ul>
+        </div>` : ''}
+    </section>`).join('');
+
+  const exampleHtml = doc.examples.length ? `
+    <section class="examples-block mt-12 page-break-before">
+      <h3 class="font-display text-[2rem] leading-tight text-stone-900">Practice Questions</h3>
+      <div class="examples-grid mt-5 grid gap-5">
+        ${doc.examples.map((example, idx) => `
+          <article class="example-card break-inside-avoid rounded-2xl border border-stone-200 bg-white p-8">
+            <h4 class="font-display text-[1.35rem] text-stone-900">Example ${idx + 1}</h4>
+            <div class="question-card mt-6 rounded-2xl border border-stone-200 bg-stone-50">
+              <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-stone-500">Question</p>
+              <div class="example-question mt-4 text-[15px] leading-8 text-stone-900">${renderRichParagraphs(example.question)}</div>
+            </div>
+            ${example.solution ? `
+              <div class="solution-card mt-6 rounded-2xl border border-stone-200 bg-stone-50">
+                <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-stone-500">Solution</p>
+                <div class="example-solution mt-4 text-[15px] leading-8 text-stone-800">${renderRichParagraphs(example.solution)}</div>
+              </div>` : ''}
+          </article>`).join('')}
+      </div>
+    </section>` : '';
+
+  notesPreview.innerHTML = `
+    <article class="print-sheet max-w-none px-6 py-7 md:px-12 md:py-12 print:px-0 print:py-0" id="printSheet">
+      <header class="notes-doc-head">
+        <p class="eyebrow font-mono text-[11px] uppercase tracking-[0.24em] text-stone-500">Math Study Notes</p>
+        <h2 class="mt-7 font-display text-4xl leading-[1.16] text-stone-950 md:text-5xl">${escapeHtml(doc.title)}</h2>
+        <div class="notes-summary mt-9 text-[17px] leading-8 text-stone-700">${renderRichParagraphs(doc.summary)}</div>
+      </header>
+      ${revisionHtml}
+      ${sectionHtml}
+      ${exampleHtml}
+    </article>`;
+  renderMathEnhancements(notesPreview);
+}
+
+function showPreview(doc) {
+  previewEmpty.hidden = true;
+  notesPreview.hidden = false;
+  previewActions.hidden = false;
+  renderNotesDoc(doc);
+}
+
+function printNotes() {
+  window.print();
+}
+
+printBtn.addEventListener('click', printNotes);
+downloadPdfBtn.addEventListener('click', printNotes);
+
+async function generateNotes() {
+  if (!validateForm()) return;
+
+  try {
+    setGenerating(true);
+    if (!availableModels.length) {
+      const models = await loadModels();
+      availableModels = choosePreferredModels(models);
+    }
+    if (!activeModel) activeModel = availableModels[0] || '';
+    if (!activeModel) throw new Error('No model available.');
+
+    const prompt = buildNotesPrompt();
+    let raw = await callGroqNotesWithFallback(prompt, 'You create structured educational study notes.');
+    let doc = parseNotesResponse(raw);
+
+    if (!isValidNotesDoc(doc)) {
+      raw = await reformatNotesResponse(activeModel, raw, prompt);
+      doc = parseNotesResponse(raw);
+    }
+
+    if (!isValidNotesDoc(doc)) {
+      doc = buildFallbackNotesDoc(raw, getTopicValue());
+    }
+
+    lastRawNotes = raw;
+    lastParsedDoc = doc;
+    showPreview(doc);
+    setStatus('Notes ready. Use Print / Save as PDF to export.');
+  } catch (err) {
+    setStatus(`Error: ${err.message}`, true);
+  } finally {
+    setGenerating(false);
+  }
+}
+
+generateBtn.addEventListener('click', generateNotes);
+topicInput.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    generateNotes();
+  }
+});
+</script>
+</body>
+</html>
