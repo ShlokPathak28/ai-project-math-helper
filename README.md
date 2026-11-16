@@ -1,5 +1,7 @@
 # Math Solver AI (Groq Vision)
 
+[![CI](https://github.com/ShlokPathak28/ai-project-math-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/ShlokPathak28/ai-project-math-helper/actions/workflows/ci.yml)
+
 A local, single-page math tutoring app with:
 - A custom Node.js HTTP server (`server.js`)
 - A rich browser UI (`math-solver.html`)
@@ -36,8 +38,12 @@ The app can solve typed or image-based math problems, render structured step-by-
 
 ```text
 .
+|- .github/workflows/ci.yml  # GitHub Actions: install, lint, test, smoke test
 |- server.js            # Backend server + Groq proxy + static serving
 |- math-solver.html     # Full frontend UI and client logic
+|- notes.html           # Static notes page
+|- test/server.test.js  # Node built-in test runner smoke tests
+|- eslint.config.js     # ESLint flat config
 |- package.json
 |- .env                 # Local env vars (not for commit)
 |- README.md
@@ -76,6 +82,30 @@ npm run debug
 ```text
 http://localhost:3000
 ```
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm start` | Start the server |
+| `npm run dev` | Start with extra Node trace warnings |
+| `npm run debug` | Start with the Node inspector attached |
+| `npm run lint` | Lint the JavaScript with ESLint |
+| `npm test` | Run the server smoke tests (`node --test`) |
+
+## Continuous Integration
+
+Every push to any branch and every pull request runs GitHub Actions
+(`.github/workflows/ci.yml`):
+
+1. **Install** - `npm ci` on Node 22 and Node 24
+2. **Lint** - `npm run lint` (ESLint flat config)
+3. **Test** - `npm test` (Node's built-in test runner, no extra framework)
+4. **Smoke test** - boots `server.js`, waits for it, and asserts `GET /health`
+   returns `ok: true`
+
+Tests run in-process against the exported request handler, so no Groq API key
+or network access is required in CI. The pipeline fails if any step fails.
 
 ## Environment Variables
 
@@ -185,7 +215,9 @@ When user clicks **Solve**:
 
 ## Development Notes
 
-- This project currently has no test suite configured.
+- Linting is enforced with ESLint; tests use Node's built-in `node:test` runner.
+- Tests cover the HTTP layer: health check, static serving, CORS, input
+  validation, unknown routes, and path-traversal protection.
 - The frontend is a single large HTML file with inline CSS/JS for simplicity.
 - Backend intentionally avoids additional frameworks and uses native Node modules.
 
