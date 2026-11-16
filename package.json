@@ -12,7 +12,7 @@
     "dev": "node --trace-warnings --trace-uncaught server.js",
     "debug": "node --inspect --trace-warnings --trace-uncaught server.js",
     "lint": "eslint .",
-    "test": "node --test test/"
+    "test": "node --test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
